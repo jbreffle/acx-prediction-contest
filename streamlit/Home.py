@@ -414,9 +414,11 @@ def main():
         participants to generate predictions for the Full Mode.
 
         The app is hosted at 
-        [acx-predictions.streamlit.app](<https://acx-predictions.streamlit.app/>), 
+        [acx-prediction-contest.streamlit.app\
+            ](<https://acx-prediction-contest.streamlit.app/>), 
         and the code for the app is hosted on my GitHub at
-        [github.com/jbreffle](<https://github.com/jbreffle>).
+        [github.com/jbreffle/acx-prediction-contest\
+            ](<https://github.com/jbreffle/acx-prediction-contest>).
         """
     )
     # Describe app pages
