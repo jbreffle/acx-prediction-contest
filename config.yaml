@@ -1,0 +1,5 @@
+DATA_PATH: ./data/raw/2023blindmode_predictions.parquet
+DATA_PATH_XLSX: ./data/raw/2023blindmode_predictions.xlsx
+DATA_PATH_CSV: ./data/raw/2023blindmode_predictions.csv
+PROCESSED_DATA_FOLDER: ./data/processed/
+RESULTS_FOLDER: ./data/results/

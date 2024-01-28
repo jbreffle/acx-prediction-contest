@@ -1,0 +1,5 @@
+# This line doesn't seem to work
+# notebooks/**/*.ipynb linguist-vendored
+
+# Add line to ignore jupyter notebooks from GitHub's language percentage
+*.ipynb linguist-vendored
