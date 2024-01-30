@@ -46,7 +46,7 @@ def main():
     )
     st.divider()
 
-    # TODO
+    # TODO MOve to a function and cache
     st.subheader("Fixed weights and varying beta parameters")
     weights_original = [0.05, 0.8, 0.1, 0.05]
     mean_ests = np.array(estimates_df.mean(axis=0))
@@ -58,10 +58,11 @@ def main():
             axis=0
         )
     )
+    n_beta_range = 100
     mean_ests_LW = np.array(
         estimates_df.loc[blind_mode_df["LessWrong"].values == "Yes"].mean(axis=0)
     )
-    beta_range = np.logspace(-2, 2, 100)
+    beta_range = np.logspace(-2, 2, n_beta_range)
     parameter_mesh = util.generate_aggregate_meshgrid(
         *weights_original[1:], beta_range, equal_betas=True
     )
@@ -81,7 +82,31 @@ def main():
         transparent=True,
     )
 
-    
+    # TODO Move to a function and cache
+    st.markdown("""2D grid:""")
+    n_beta_range = 50
+    # Calculate
+    beta_range = np.logspace(-2, 2, n_beta_range)
+    parameter_mesh = util.generate_aggregate_meshgrid(
+        *weights_original[1:], beta_range, equal_betas=False
+    )
+    score_vec = util.calculate_score_over_meshgrid(
+        parameter_mesh,
+        mean_ests,
+        mean_ests_SF,
+        mean_ests_FE,
+        mean_ests_LW,
+        resolution_vector,
+    )
+    score_grid = score_vec.reshape((len(beta_range), len(beta_range)))
+    # Plot
+    fig = plt.figure(figsize=(5, 5))
+    ax = plot.score_vs_beta_2d(beta_range, score_grid).set_title("")
+    st.pyplot(
+        fig,
+        use_container_width=True,
+        transparent=True,
+    )
 
     # Plot any feature
     # Footer
