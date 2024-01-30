@@ -132,7 +132,7 @@ def main():
     beta_range, score_vec = calculate_score_vec_1d_beta(
         blind_mode_df, resolution_vector, n_beta_range=50, equal_betas=True
     )
-    fig = plt.figure(figsize=(6, 3))
+    fig = plt.figure(figsize=(6, 2))
     _ = plot.score_vs_beta(beta_range, score_vec).set_title("")
     st.pyplot(
         fig,
@@ -146,7 +146,7 @@ def main():
     )
     score_grid = score_vec.reshape((len(beta_range), len(beta_range)))
     # Plot
-    fig = plt.figure(figsize=(5, 5))
+    fig = plt.figure(figsize=(6, 4))
     _ = plot.score_vs_beta_2d(beta_range, score_grid).set_title("")
     st.pyplot(
         fig,
@@ -163,7 +163,6 @@ def main():
         blind_mode_df, resolution_vector, n_points=20, fixed_betas=True
     )
     fig = plt.figure(figsize=(6, 2))
-    # TODO move this into a src.plot function
     _ = plot.score_vec_hist(score_vec)
     st.pyplot(
         fig,
@@ -173,9 +172,12 @@ def main():
 
     # Plot any feature
     # Footer
+    nb_4_url = "https://github.com/jbreffle/acx-prediction-contest/blob/main/notebooks/4_post_hoc_aggregation.ipynb"
     st.markdown(
-        """
-        See ```./notebooks/4_post_hoc_aggregation.ipynb``` of this project's GitHub repo 
+        f"""
+        See 
+        [`./notebooks/4_post_hoc_aggregation.ipynb`](<{nb_4_url}>)
+        of this project's GitHub repo 
         for results that will be transfered here.
         """
     )

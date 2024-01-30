@@ -144,6 +144,15 @@ def main():
         features.
         """
     )
+    nb_xgb_url = "https://github.com/jbreffle/acx-prediction-contest/blob/main/notebooks/5_post_hoc_xgb.ipynb"
+    st.markdown(
+        f"""
+        See 
+        [`./notebooks/5_post_hoc_xgb.ipynb`](<{nb_xgb_url}>)
+        for ongoing analysis and results that will be transfered here.
+        """
+    )
+
     # TODO show XGBoost model:
     # model performance, feature importance
     st.divider()
@@ -153,6 +162,14 @@ def main():
     st.markdown(
         """
         We can also use the model to generate an aggregate forecast.
+        """
+    )
+    ng_nn_url = "https://github.com/jbreffle/acx-prediction-contest/blob/main/notebooks/5_post_hoc_nn.ipynb"
+    st.markdown(
+        f"""
+        See 
+        [`./notebooks/5_post_hoc_nn.ipynb`](<{ng_nn_url}>)
+        for ongoing analysis and results that will be transfered here.
         """
     )
     # TODO show aggregation method using model
@@ -171,11 +188,12 @@ def main():
     st.divider()
 
     # Footer
+    nn_features_url = "https://github.com/jbreffle/acx-prediction-contest/blob/main/notebooks/5_post_hoc_features.ipynb"
     st.markdown(
-        """
-        See ```./notebooks/5_post_hoc_{features, nn, xgb}.ipynb``` of this project's 
-        GitHub repo for additional ongoing analysis and results that will be
-        transfered here.
+        f"""
+        See 
+        [`./notebooks/5_post_hoc_features.ipynb`](<{nn_features_url}>)
+        for addidional analysis and results.
         """
     )
 
