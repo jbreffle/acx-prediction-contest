@@ -19,6 +19,17 @@ from src import process
 
 
 # Functions
+def score_vec_hist(score_vec, ax=None, **hist_kwargs):
+    """..."""
+    if ax is None:
+        ax = plt.gca()
+    ax.hist(score_vec, bins=np.round(np.sqrt(len(score_vec))).astype(int))
+    ax.set_title("All Brier scores across a parameter grid")
+    ax.set_xlabel("Brier score")
+    ax.set_ylabel("Count (parameter sets)")
+    return ax
+
+
 def score_vs_beta_2d(beta_range, score_grid, ax=None):
     if ax is None:
         ax = plt.gca()
@@ -56,7 +67,7 @@ def score_vs_beta_2d(beta_range, score_grid, ax=None):
     # Add line at beta_a==beta_b
     ax.plot([0, len(beta_range) - 1], [0, len(beta_range) - 1], color="grey")
     # Add colorbar
-    plt.colorbar(im, ax=ax)
+    plt.colorbar(im, fraction=0.046, pad=0.04)
     return ax
 
 
