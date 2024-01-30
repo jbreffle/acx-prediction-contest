@@ -18,8 +18,30 @@ from sklearn.metrics import mean_squared_error
 from src import process
 
 
+def calculate_score_over_meshgrid(
+    parameter_mesh,
+    mean_ests,
+    mean_ests_SF,
+    mean_ests_FE,
+    mean_ests_LW,
+    resolution_vector,
+):
+    """..."""
+    score_vec = np.zeros(len(parameter_mesh))
+    for i in range(len(parameter_mesh)):
+        score_vec[i] = aggregation_score(
+            parameter_mesh[i, :],
+            mean_ests,
+            mean_ests_SF,
+            mean_ests_FE,
+            mean_ests_LW,
+            resolution_vector,
+        )
+    return score_vec
+
+
 def generate_aggregate_meshgrid(
-    values1, values2, values3, values4, values5, equal_betas=False
+    range_sf, range_fe, range_lw, range_betas, equal_betas=False
 ):
     """
     Generates a flattened 6D mesh grid, with an option to make parameter 5 equal to parameter 6.
@@ -31,26 +53,31 @@ def generate_aggregate_meshgrid(
     Returns:
         numpy.ndarray: A 2D array where each row is a unique combination of the 6 parameters.
     """
+    # Create initial grid, without second beta or column mean_ests (all participants)
     grids = np.meshgrid(
-        values1, values2, values3, values4, values5, indexing="ij", sparse=False
+        range_sf, range_fe, range_lw, range_betas, indexing="ij", sparse=False
     )
-
-    # Adjust for parameter 5 and 6 equality if required
+    # Add a column for second beta
     if equal_betas:
-        grids_5_equal_6 = [grids[i] for i in range(4)] + [grids[4], grids[4]]
+        grids_5_equal_6 = [grids[i] for i in range(3)] + [grids[3], grids[3]]
     else:
         grids_5_equal_6 = np.meshgrid(
-            values1,
-            values2,
-            values3,
-            values4,
-            values5,
-            values5,
+            range_sf,
+            range_fe,
+            range_lw,
+            range_betas,
+            range_betas,
             indexing="ij",
             sparse=False,
         )
-
+    # Add a column for mean_ests, which the value needed to sum weights to 1
+    column_for_mean = 1 - np.sum(grids_5_equal_6[0:3], axis=0)
+    grids_5_equal_6.append(column_for_mean)
+    grids_5_equal_6 = grids_5_equal_6[-1:] + grids_5_equal_6[:-1]
+    # Flatten the meshgrid to a table of parameter sets
     flattened_grid = np.array(grids_5_equal_6).reshape(6, -1).T
+    # Remove rows where column_for_mean is negative
+    flattened_grid = flattened_grid[flattened_grid[:, 0] >= 0]
     return flattened_grid
 
 
