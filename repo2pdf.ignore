@@ -1,0 +1,4 @@
+{
+  "ignoredFiles": [".gitattributes"],
+  "ignoredExtensions": [".svg", ".csv", ".xlsx", ".parquet", ".ipynb"]
+}
