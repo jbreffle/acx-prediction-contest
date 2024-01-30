@@ -7,6 +7,7 @@ import streamlit as st
 import numpy as np
 import altair as alt
 import pandas as pd
+import matplotlib.pyplot as plt
 
 from src import process
 from src import util
@@ -27,6 +28,7 @@ def main():
 
     # Load data
     blind_mode_df, markets_df, resolution_df = Home.load_data()
+    estimates_df = blind_mode_df.filter(like="@", axis=1)
     feature_df, target_df = get_ml_dfs(blind_mode_df)
     estimates_matrix = process.get_estimates_matrix(blind_mode_df)
     resolution_vector = target_df["resolution"].values
@@ -43,6 +45,43 @@ def main():
         """
     )
     st.divider()
+
+    # TODO
+    st.subheader("Fixed weights and varying beta parameters")
+    weights_original = [0.05, 0.8, 0.1, 0.05]
+    mean_ests = np.array(estimates_df.mean(axis=0))
+    mean_ests_SF = np.array(
+        estimates_df.loc[blind_mode_df["Superforecaster"].values == "Yes"].mean(axis=0)
+    )
+    mean_ests_FE = np.array(
+        estimates_df.loc[blind_mode_df["ForecastingExperience"].values == "Yes"].mean(
+            axis=0
+        )
+    )
+    mean_ests_LW = np.array(
+        estimates_df.loc[blind_mode_df["LessWrong"].values == "Yes"].mean(axis=0)
+    )
+    beta_range = np.logspace(-2, 2, 100)
+    parameter_mesh = util.generate_aggregate_meshgrid(
+        *weights_original[1:], beta_range, equal_betas=True
+    )
+    score_vec = util.calculate_score_over_meshgrid(
+        parameter_mesh,
+        mean_ests,
+        mean_ests_SF,
+        mean_ests_FE,
+        mean_ests_LW,
+        resolution_vector,
+    )
+    fig = plt.figure(figsize=(6, 3))
+    ax = plot.score_vs_beta(beta_range, score_vec).set_title("")
+    st.pyplot(
+        fig,
+        use_container_width=True,
+        transparent=True,
+    )
+
+    
 
     # Plot any feature
     # Footer

@@ -18,6 +18,27 @@ from src import process
 
 
 # Functions
+def score_vs_beta(beta_range, score_vec, ax=None):
+    """..."""
+    if ax is None:
+        ax = plt.gca()
+    ax.plot(beta_range, score_vec)
+    ax.set_title("Brier score vs beta parameters")
+    ax.set_xlabel(r"$\beta_a = \beta_b$")
+    ax.set_ylabel("Brier score")
+    ax.set_xscale("log")
+    # Add annotation to minimum
+    min_mse_beta = np.min(score_vec)
+    min_beta_a = beta_range[np.argmin(score_vec)]
+    ax.annotate(
+        fr"Min Brier: {min_mse_beta:.4f} at $\beta_a = \beta_b$={min_beta_a:.4f}",
+        xy=(min_beta_a, min_mse_beta),
+        xytext=(min_beta_a, min_mse_beta * 1.1),
+        arrowprops=dict(facecolor="black", shrink=0.05),
+    )
+    return ax
+
+
 def feature_volcano_plot(r_and_p_values, significance_threshold=0.05, ax=None):
     """Plot a volcano plot of the r and p values of the features."""
     # Color by significance and slope
