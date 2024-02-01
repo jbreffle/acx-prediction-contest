@@ -52,7 +52,7 @@ def add_sidebar_links():
     with st.sidebar:
         logo_column_1 = st.columns([0.6, 3.4])
         with logo_column_1[0]:
-            st.image(APP_ICON_PATH, use_column_width=True)
+            st.image(APP_ICON_PATH)
         with logo_column_1[1]:
             st.link_button(
                 " jbreffle.github.io   ",
@@ -62,7 +62,7 @@ def add_sidebar_links():
             )
         logo_column_2 = st.columns([0.6, 3.4])
         with logo_column_2[0]:
-            st.image(GH_ICON_PATH, use_column_width=True)
+            st.image(GH_ICON_PATH)
         with logo_column_2[1]:
             st.link_button(
                 "github.com/jbreffle",
