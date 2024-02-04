@@ -22,16 +22,16 @@ def get_default_params():
     """Function to initilize default hyperparameters"""
     params = type("Params", (), {})()
     # Data
-    params.batch_size = 250
+    params.batch_size = 100
     params.train_size = 0.8
     # Model
     params.hidden_layer_sizes = [100, 50, 10]
     # Training
-    params.log_interval = 100  # How often to log results in epochs
-    params.lr = 1e-3  # Learning rate
+    params.log_interval = 10  # How often to log results in epochs
+    params.lr = 0.00001  # Learning rate
     params.weight_decay = 0.001
-    params.n_epochs = 600
-    params.gamma = 0.999  # Learning rate decay
+    params.n_epochs = 100
+    params.gamma = 0.8  # Multiplicative factor of learning rate decay
     # Device
     params.use_cuda = True
     params.device = torch.device(
@@ -128,9 +128,9 @@ class Net(nn.Module):
 
     def forward(self, x):
         x = F.relu(self.fc1(x))
-        x = F.dropout(x, 0.95)
+        x = F.dropout(x, 0.01)
         x = F.relu(self.fc2(x))
-        x = F.dropout(x, 0.5)
+        x = F.dropout(x, 0.01)
         x = F.relu(self.fc3(x))
         x = self.fc4(x)
         return x
