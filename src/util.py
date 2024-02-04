@@ -1,7 +1,6 @@
 """Misc. helper functions for the project.
 """
 
-
 # Imports
 import os
 import hashlib
@@ -41,7 +40,7 @@ def calculate_score_over_meshgrid(
 
 
 def generate_aggregate_meshgrid(
-    range_sf, range_fe, range_lw, range_betas, equal_betas=False
+    range_sf, range_fe, range_lw, range_betas, equal_betas=False, add_jitter=False
 ):
     """
     Generates a flattened 6D mesh grid, with an option to make parameter 5 equal to parameter 6.
@@ -70,6 +69,24 @@ def generate_aggregate_meshgrid(
             indexing="ij",
             sparse=False,
         )
+
+    # Add uniform noise to the first three columns of grids_5_equal_6
+    # Noise is equal to half the step size, and values are bounded by [0,1]
+    if add_jitter:
+        # Calculate the step size for each parameter
+        step_size = [
+            range_sf[1] - range_sf[0],
+            range_fe[1] - range_fe[0],
+            range_lw[1] - range_lw[0],
+        ]
+        # Add noise to the first three columns of grids_5_equal_6
+        for i in range(3):
+            half_step_width = step_size[i] / 2
+            grids_5_equal_6[i] = grids_5_equal_6[i] + np.random.uniform(
+                -half_step_width, half_step_width, grids_5_equal_6[i].shape
+            )
+            grids_5_equal_6[i] = np.clip(grids_5_equal_6[i], 0, 1)
+
     # Add a column for mean_ests, which the value needed to sum weights to 1
     column_for_mean = 1 - np.sum(grids_5_equal_6[0:3], axis=0)
     grids_5_equal_6.append(column_for_mean)

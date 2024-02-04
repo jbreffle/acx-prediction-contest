@@ -8,11 +8,33 @@ import numpy as np
 import altair as alt
 import pandas as pd
 import matplotlib.pyplot as plt
+from sklearn.manifold import TSNE
 
 from src import process
 from src import util
 from src import plot
 import Home
+
+
+@st.cache_data
+def run_tsne(parameter_mesh, exclude_group=None, n_components=None, random_state=0):
+    # Create a list of the parameter_mesh columns to exclude
+    parameter_columns = ["all", "sf", "fe", "lw", "beta_a", "beta_b"]
+    if exclude_group is not None:
+        # Match the index of the exclude_group to the parameter_columns and remove it
+        if exclude_group in parameter_columns:
+            exclude_index = parameter_columns.index(exclude_group)
+            parameter_mesh = np.delete(parameter_mesh, exclude_index, axis=1)
+        else:
+            raise ValueError(f"exclude_group must be one of {parameter_columns}")
+
+    if n_components is None and exclude_group is None:
+        n_components = 2
+    elif n_components is None:
+        n_components = 1
+    tsne = TSNE(n_components=n_components, random_state=random_state)
+    tsne_weights = tsne.fit_transform(parameter_mesh)
+    return tsne_weights
 
 
 @st.cache_data
@@ -37,6 +59,7 @@ def calculate_score_vec_all_params(
         weights_range,
         beta_range,
         equal_betas=False,
+        add_jitter=True,
     )
     # Compute score over the meshgrid
     score_vec = util.calculate_score_over_meshgrid(
@@ -47,7 +70,7 @@ def calculate_score_vec_all_params(
         mean_ests_LW,
         resolution_vector,
     )
-    return score_vec
+    return score_vec, parameter_mesh
 
 
 @st.cache_data
@@ -153,32 +176,138 @@ def main():
         use_container_width=True,
         transparent=True,
     )
+    st.divider()
 
+    st.subheader("Fixed beta parameters and varying weights")
     st.write(
         r"""
         Varied group weights with fixed $$\beta _a = \beta_b = \frac{1}{3}$$
         """
     )
-    score_vec = calculate_score_vec_all_params(
+    score_vec, parameter_mesh = calculate_score_vec_all_params(
         blind_mode_df, resolution_vector, n_points=20, fixed_betas=True
     )
     fig = plt.figure(figsize=(6, 2))
-    _ = plot.score_vec_hist(score_vec)
+    ax = plot.score_vec_hist(score_vec)
+    ax.set_title("All Brier scores across the 4D grid of weights")
     st.pyplot(
         fig,
         use_container_width=True,
         transparent=True,
     )
 
-    # Plot any feature
+    # t-SNE
+
+    st.write(
+        """Dimensionality reduction of the 4d grid of weights using t-SNE
+        """
+    )
+
+    show_button = False
+    if show_button:
+        # TODO update isn't changing the plots
+        def update1():
+            st.session_state.t_sne_seed = np.random.randint(0, 100)
+
+        if "t_sne_seed" not in st.session_state:
+            st.session_state.t_sne_seed = 0
+        st.button(
+            f"Re-roll t-SNE seed (current: {st.session_state.t_sne_seed})",
+            on_click=update1,
+            type="primary",
+        )
+        t_sne_seed = st.session_state.t_sne_seed
+        st.write(f"t-SNE seed: {t_sne_seed}")
+        st.write(f"t-SNE seed: {st.session_state.t_sne_seed}")
+    else:
+        t_sne_seed = 0
+
+    # 2D TSNE of parameter_mesh, colored by f
+    tsne_weights_all = run_tsne(parameter_mesh, random_state=t_sne_seed)
+    fig = plt.figure(figsize=(6, 5))
+    ax = fig.add_subplot(111)
+    im = ax.scatter(
+        tsne_weights_all[:, 0],
+        tsne_weights_all[:, 1],
+        s=5,
+        c=score_vec,
+        cmap="viridis",
+    )
+    ax.set_xlabel("TSNE 1")
+    ax.set_ylabel("TSNE 2")
+    ax.set_title("t-SNE of 4D grid of weights")
+    # Add colorbar, with grid false
+    plt.colorbar(im, ax=ax, label="Brier score")
+
+    st.pyplot(
+        fig,
+        use_container_width=True,
+        transparent=True,
+    )
+
+    # 1D TSNE without a dimension of parameter_mesh, then plot
+    # that dimension against the 1-d TSNE
+    tsne_weights_minus_sf = run_tsne(
+        parameter_mesh, exclude_group="sf", random_state=t_sne_seed
+    )
+    tsne_weights_minus_fe = run_tsne(
+        parameter_mesh, exclude_group="fe", random_state=t_sne_seed
+    )
+    # Plot these two side by side in different axes of the same fig
+    fig = plt.figure(figsize=(6, 3))
+    # Left subplot, SF
+    ax = fig.add_subplot(121)
+    ax.scatter(
+        parameter_mesh[:, 1],
+        tsne_weights_minus_sf[:, 0],
+        s=3,
+        c=score_vec,
+        cmap="viridis",
+    )
+    ax.set_xlabel("SF weights")
+    ax.set_ylabel("TSNE 1")
+    # plt.colorbar(plt.cm.ScalarMappable(cmap="viridis"), ax=ax, label="Brier score")
+    # Right subplot, FE
+    ax = fig.add_subplot(122)
+    ax.scatter(
+        parameter_mesh[:, 2],
+        tsne_weights_minus_fe[:, 0],
+        s=3,
+        c=score_vec,
+        cmap="viridis",
+    )
+    ax.set_xlabel("SF weights")
+    # plt.colorbar(plt.cm.ScalarMappable(cmap="viridis"), ax=ax, label="Brier score")
+    st.pyplot(
+        fig,
+        use_container_width=True,
+        transparent=True,
+    )
+    st.divider()
+
     # Footer
     nb_4_url = "https://github.com/jbreffle/acx-prediction-contest/blob/main/notebooks/4_post_hoc_aggregation.ipynb"
     st.markdown(
         f"""
         See 
         [`./notebooks/4_post_hoc_aggregation.ipynb`](<{nb_4_url}>)
-        of this project's GitHub repo 
-        for results that will be transfered here.
+        of this project's GitHub repo for additional results,
+        including dimensionality reduction with PCA and 
+        global parameter optimization.
+        By optimizing over the entire parameter space, we can find a minimal Brier Score
+        of `0.147730` with fitted parameters of 
+        `0.000000, 0.722385, 0.082014, 0.195602, 0.227142, 0.276849`.
+        """
+    )
+    supervised_url = (
+        "https://acx-prediction-contest.streamlit.app/Supervised_aggregation"
+    )
+    st.markdown(
+        f"""
+        Note that all of the analyses on this page result from evaluating the
+        Brier score directly on the full data set.
+        See the [Supervised aggregation](<{supervised_url}>) page for several 
+        approaches to trainining a predictive model on the data.
         """
     )
 
