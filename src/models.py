@@ -27,11 +27,11 @@ def get_default_params():
     # Model
     params.hidden_layer_sizes = [100, 50, 10]
     # Training
-    params.log_interval = 10  # How often to log results in epochs
+    params.log_interval = 100  # How often to log results in epochs
     params.lr = 0.00001  # Learning rate
     params.weight_decay = 0.001
-    params.n_epochs = 100
-    params.gamma = 0.8  # Multiplicative factor of learning rate decay
+    params.n_epochs = 1000
+    params.gamma = 0.995  # Multiplicative factor of learning rate decay
     # Device
     params.use_cuda = True
     params.device = torch.device(
@@ -119,18 +119,22 @@ def test(model, device, test_loader, loss_function, silent=True):
 
 # Models
 class Net(nn.Module):
-    def __init__(self, input_size, hidden_layer_sizes):
+
+    def __init__(self, input_size, hidden_layer_sizes, p=0.25):
         super().__init__()
         self.fc1 = nn.Linear(input_size, hidden_layer_sizes[0])
         self.fc2 = nn.Linear(hidden_layer_sizes[0], hidden_layer_sizes[1])
         self.fc3 = nn.Linear(hidden_layer_sizes[1], hidden_layer_sizes[2])
         self.fc4 = nn.Linear(hidden_layer_sizes[2], 1)
 
+        # define dropout layer in __init__
+        self.drop_layer = nn.Dropout(p=p)
+
     def forward(self, x):
         x = F.relu(self.fc1(x))
-        x = F.dropout(x, 0.01)
+        x = self.drop_layer(x)
         x = F.relu(self.fc2(x))
-        x = F.dropout(x, 0.01)
+        # x = F.dropout(x, 0.01)
         x = F.relu(self.fc3(x))
         x = self.fc4(x)
         return x
