@@ -416,7 +416,7 @@ def main():
         The app is hosted at 
         [acx-prediction-contest.streamlit.app\
             ](<https://acx-prediction-contest.streamlit.app/>), 
-        and the code for the app is hosted on my GitHub at
+        and the code for the app is hosted on GitHub
         [github.com/jbreffle/acx-prediction-contest\
             ](<https://github.com/jbreffle/acx-prediction-contest>).
         """
@@ -424,12 +424,13 @@ def main():
     # Describe app pages
     st.markdown(
         """
-        Questions answered by each page of the app:
+        This app has multiple pages, each of which address different questions:
         - **Home** (this page):
         What are some basic properties of the Blind Mode
         predictions?
         - **Predictions by experience**: 
-        Does self-reported forecasting experience correlate with predictions?
+        Does self-reported forecasting experience correlate with any property
+        of the Blind Mode predictions?
         - **Aggregating predictions**:
         Can we aggregate Blind Mode predictions to generate more accurate predictions?
         - **Simulating outcomes**:
@@ -449,6 +450,15 @@ def main():
 
     # Load and display data
     st.subheader("Blind Mode raw data")
+    st.markdown(
+        """
+        The full dataset of the Blind Mode contest includes each participant's
+        predictions for each of the 50 questions and their self-reported
+        forecasting experience.
+        The data also includes responses to a large set of survey questions for
+        the subset of participants who chose to complete them.
+        """
+    )
     data_load_state = st.warning("Loading data...")
     blind_mode_df, markets_df, resolution_vector = load_data()
     data_load_state.success("Loading data... Done!")
@@ -458,6 +468,14 @@ def main():
 
     # Slider to select question to plot
     st.subheader("Prediction distributions")
+    st.markdown(
+        """
+        Use the slider to select one of the 50 questions of the contest.
+        The histogram will show the distribution of all Blind Mode participant
+        predictions for that question.
+        Now that the contest is over, we can also label the outcome of each question.
+        """
+    )
     selected_question_number = st.slider("Select question", 1, 50, 1)
     # Write question text and outcome
     full_question = get_question_text(markets_df, selected_question_number)
@@ -494,6 +512,8 @@ def main():
     st.markdown(
         """
         Participants did not have to answer all questions.
+        If you left a question blank, you would receive the average score
+        for that question.
         Is there anything interesting regarding the response rates when
         analyzed by question or by participant?
         """
@@ -514,14 +534,32 @@ def main():
         They are:
         """
     )
+    # Get the question number, after @  before .
+    questions_fraction_answered_numbers = questions_fraction_answered.index.str.extract(
+        r"@(\d+)\."
+    )
+
+    full_question_1 = get_question_text(
+        markets_df, questions_fraction_answered_numbers.iloc[0].values
+    )
+    full_question_2 = get_question_text(
+        markets_df, questions_fraction_answered_numbers.iloc[1].values
+    )
     st.markdown(
         f"""
-        - Question {questions_fraction_answered.index[0]} with a response rate of
-        {questions_fraction_answered[0]:.0%}
-        - Question {questions_fraction_answered.index[1]} with a response rate of
-        {questions_fraction_answered[1]:.0%}
+        - Question {full_question_1} Which had a response rate of
+        {questions_fraction_answered[0]:.02%}
+        - Question {full_question_2} Which had a response rate of
+        {questions_fraction_answered[1]:.02%}
         """
     )
+    st.markdown(
+        """
+        This result makes sense, as both of these questions are two of the most
+        obscure and niche-topic questions in the contest.
+        """
+    )
+
     st.text("")
     # Response rate by participant
     questions_fraction_answered = 1 - (
@@ -533,8 +571,8 @@ def main():
     st.altair_chart(questions_fraction_answered_chart, use_container_width=True)
     st.markdown(
         """
-        Most participants answered most questions.
-        Many participants answered all questions,
+        Most participants answered most questions,
+        many participants answered all questions,
         and a few participants answered zero questions.
         """
     )

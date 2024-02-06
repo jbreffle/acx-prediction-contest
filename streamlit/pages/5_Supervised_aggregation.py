@@ -137,53 +137,43 @@ def main():
     st.divider()
 
     # Show XGBoost model
+    # TODO show XGBoost model:
+    # model performance, feature importance
     st.subheader("XGBoost model")
-    st.markdown(
-        """
-        We can also use a machine learning model to predict the score based on the
-        features.
-        """
-    )
     nb_xgb_url = "https://github.com/jbreffle/acx-prediction-contest/blob/main/notebooks/5_post_hoc_xgb.ipynb"
     st.markdown(
         f"""
         See 
         [`./notebooks/5_post_hoc_xgb.ipynb`](<{nb_xgb_url}>)
-        for ongoing analysis and results that will be transfered here.
+        for ongoing analysis and results that will be transfered here,
+        where an XGBoost model is used to predict a participants' Brier score based 
+        on their survey question answers.
         """
     )
-
-    # TODO show XGBoost model:
-    # model performance, feature importance
     st.divider()
 
     # Show aggregation method using model
+    # TODO show aggregation method using model
     st.subheader("Aggregation from model")
     st.markdown(
         """
-        We can also use the model to generate an aggregate forecast.
+        The trained model can then be used to perform prediction aggregation on
+        participants that were not part of the training set.
         """
     )
+    st.divider()
+
+    # Show NN model and aggregation method
+    # TODO show NN model:
+    st.subheader("Neural network model")
     ng_nn_url = "https://github.com/jbreffle/acx-prediction-contest/blob/main/notebooks/5_post_hoc_nn.ipynb"
     st.markdown(
         f"""
         See 
         [`./notebooks/5_post_hoc_nn.ipynb`](<{ng_nn_url}>)
-        for ongoing analysis and results that will be transfered here.
+        for results similar to the XGBoost model, but using a neural network.
         """
     )
-    # TODO show aggregation method using model
-    st.divider()
-
-    # Show NN model and aggregation method
-    st.subheader("Neural network model")
-    st.markdown(
-        """
-        We can also use a neural network model to predict the score based on the
-        features.
-        """
-    )
-    # TODO show NN model:
     # model performance, feature importance
     st.divider()
 

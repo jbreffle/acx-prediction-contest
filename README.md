@@ -53,3 +53,8 @@ Note: only the 1000 most recent bets for a market can be retrieved through the A
 - Use iframes to embed the streamlit app in a page on jbreffle.github.io
   - e.g. <https://elc.github.io/posts/streamlit-google-analytics/>
   - Make sure GA is working
+  
+Possibilities:
+
+- Switch from using scipy.stats.beta.ppf to using scipy.stats.beta.cdf
+- Does the Response rate by participant distribution match the beta distribution? Maybe with the exclusion of the excess of 100% response rates?

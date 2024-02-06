@@ -244,30 +244,40 @@ def main():
                 possible futures?"""
     )
     st.markdown(
-        """
+        r"""
         While we don't know the future, we can simulate it. 
         We can take some probaility of an event occuring and then simulate many possible 
         futures by taking that probabilty as the chance of the event occuring.
         We can then evaluate the distribution of our forecasting scores that might occur 
         due to the randomness of the future.
+
+        For this contest,
+        the accuracy of a set of predictions is measured by the Brier score.
+        The Brier score is defined as the mean squared difference between the predicted
+        probability and the actual outcome,
+        which means that a lower Brier score is better.
+
+        This is given by the equation:
+        $$
+        Brier = \frac{1}{N} \sum_{i=1}^{N} (f_i - o_i)^2
+        $$
+        where $f_i$ is the prediction probability and $o_i$ is the outcome for each
+        of the $N$ events.
         """
     )
     st.divider()
 
     # Load the predictions (mine and the mean of the superforecasters' predictions)
     my_predictions, sf_mean_predictions = Home.load_predictions()
-    st.subheader("My predictions vs the mean of the superforecasters' predictions")
+    st.subheader("Aggregated predictions vs the Super forecasters")
     st.markdown(
-        """How do my predictions fare against the mean of the superforecasters' 
-        predictions in Monte Carlo simulations of possible futures?
+        "#### What if the mean Super forcaster predictions were correctly calibrated?"
+    )
+    st.markdown(
         """
-    )
-    st.markdown(
-        "#### What if the mean Superforcaster predictions were correctly calibrated?"
-    )
-    st.markdown(
-        """Here are results from assuming that the mean of the superforcasters' 
-        predictions are the true underlying probabilities:
+        Here are simulation results from assuming that the mean predictions of the
+        Super forecaster group are the true underlying probabilities of the events.
+        Clicking the big red button will run new simulations.
         """
     )
     # Button to run new simulations
@@ -289,11 +299,15 @@ def main():
     # Note: lower is better for brier scores
     fig = plot_sim_outcome_dist(my_brier_scores, base_brier_scores)
     st.altair_chart(fig, use_container_width=True)
-
+    st.markdown(
+        """
+        The above distribution shows the Brier scores of the aggregate predictions
+        and the mean Super forecaster predictions over many simulated futures.
+        """
+    )
     # Histogram of brier score  percentiles
     fig = plot_sim_outcome_prct_dist(my_score_percentiles)
     st.altair_chart(fig, use_container_width=True)
-
     median_brier_score_percentile = np.median(my_score_percentiles)
     st.markdown(
         f"""
@@ -304,7 +318,7 @@ def main():
 
     st.markdown("#### What if the aggregated predictions had perfect calibration?")
     st.markdown(
-        """Here are results from assuming that my predictions are the true
+        """Here are results from assuming that the aggregated predictions are the true
         underlying probabilities:
         """
     )
@@ -345,7 +359,7 @@ def main():
     # Comparing my predictions to all Blind Mode participants
     st.subheader("My predictions vs all Blind Mode participants' predictions")
     st.markdown(
-        """How do my predictions fare against all Blind Mode participants' 
+        """How do the aggregated predictions fare against all Blind Mode participants' 
         predictions in Monte Carlo simulations of possible futures?
         """
     )
@@ -373,9 +387,14 @@ def main():
     fig = plot_brier_score_percentile_histogram(my_brier_score_percentile)
     st.altair_chart(fig, use_container_width=True)
     mean_brier_score_percentile = np.mean(my_brier_score_percentile)
+    # Calculate fraction of winning simulations
+    min_percentile_to_win = 100 / len(blind_mode_scores)
+    frac_wins = np.mean(np.array(my_brier_score_percentile) < min_percentile_to_win)
     st.markdown(
-        f"""It turns out that even if I have perfect calibration
-        I still would not be likely to win even the Blind Mode competition.
+        f"""
+        It turns out that even if the aggregated predictions were perfectly calibrated,
+        our predictions still would not be likely to win even the Blind Mode 
+        competition.
         The mean percentile of the aggregate predictions is
         {mean_brier_score_percentile:.2f}%.
         That is a strong result, but in a field of {len(blind_mode_scores)}
@@ -383,13 +402,7 @@ def main():
         That percentile corresponds to finishing in 
         {util.ordinal(round(len(blind_mode_scores)*(mean_brier_score_percentile/100)))}
         place.
-        """
-    )
-    # Calculate fraction of winning simulations
-    min_percentile_to_win = 100 / len(blind_mode_scores)
-    frac_wins = np.mean(np.array(my_brier_score_percentile) < min_percentile_to_win)
-    st.markdown(
-        f"""
+                
         In only {frac_wins*100}% of the simulations do the aggregate predictions win,
         even though we know that they are __*perfectly calibrated*__.
         """
