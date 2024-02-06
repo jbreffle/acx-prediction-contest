@@ -190,7 +190,7 @@ def run_ne_calculations(flattened_prediction_df, ne):
     chi_square_results.append({"class": "all", "stat": np.nan, "p": np.nan})
     chi_square_results = pd.DataFrame(chi_square_results)
     chi_square_results["percent"] = [
-        fractions[cls] * 100 for cls in flattened_prediction_df["class"].unique()
+        fractions[cls] * 100 for cls in chi_square_results["class"].unique()
     ]
     # chi_square_results.sort_values(by="percent", ascending=False, inplace=True)
     chi_square_results.sort_values(by="class", ascending=False, inplace=True)
@@ -462,8 +462,8 @@ def main():
     st.title("Does self-reported forecasting experience correlate with predictions?")
     st.markdown(
         f"""
-        Blind-mode participants self-identified among several categories of forecasting 
-        experience.
+        All Blind Mode participants self-identified among several categories of 
+        forecasting experience.
         There were {size_of_groups["All_Participants"][0]} total participaints.
         {size_of_groups["Forcasting_experience"][0]} participants reported having
         forecasting experience, 
@@ -477,6 +477,16 @@ def main():
     # Slider to select question
     st.divider()
     st.subheader("Prediction distributions by group")
+    st.markdown(
+        """
+        Use the slider to select a question.
+        The histogram shows the distribution of predictions split by self-identified
+        groups.
+        The Super forecaster distribution is quite a bit more varied since it includes
+        so few participants,
+        but otherwise the distributions are quite similar for most questions.
+        """
+    )
     selected_question_number = st.slider("Select question", 1, 50, 1)
 
     # Write question text and outcome
@@ -500,12 +510,38 @@ def main():
     st.altair_chart(segmented_chart, use_container_width=True)
 
     # Group statistics for the histogram (can be mean or median)
-    st.markdown("""Question mean by group""")
+    st.markdown(
+        """
+        Question mean by group:
+        """
+    )
     display_group_metrics(ests, blind_mode_df, selected_question_number)
+    st.markdown(
+        """
+        The mean prediction for each question is similar across groups.
+        The difference of any group mean relative to the overal mean is generally
+        not more than a few percentage points.
+        """
+    )
     st.divider()
 
     # Compare average predictions for each question, split by predictor group
     st.subheader("Average predictions are similar across self-identified groups")
+    st.markdown(
+        """
+        Rather than examining each question individually,
+        we can ask if there are systematic differences in the average predictions
+        across groups for the entire set of questions.
+        To do this, we plot each question as a point in a scatter plot, where its x
+        value is the average prediction for all participants, and its y value is the
+        average prediction for a particular group.
+        If a group's average predictions are identical to the overall average,
+        then all points would fall on the equality line (the grey dashed line).
+        To ask if the average predictions are different,
+        we can perform a linear regression (red line) 
+        and test if the angle of the slope is different from 45 degrees.
+        """
+    )
     # Median
     st.markdown(
         "Median predictions for each question split by group: all vs {FE, LW, SF}"
@@ -517,16 +553,47 @@ def main():
     )
     display_groupwise_scatter_row(ests, blind_mode_df, statistic="mean")
     st.markdown(
-        """It turns out that the average predictions are similar across groups,
-        whether you look at the mean or the median, and whether you compare those \
-        with forecasting experience, LessWrong members, or superforecasters.\
-        However, there are some intersting differences in the prediction distributions.
-    """
+        """
+        It turns out that the average predictions for each group (the y-axis values
+        of panel) are quite similar to the overal average (the x-axis values of panel).
+        This is true whether considering the median (top row) or mean (bottom row), 
+        and whether you compare those with forecasting experience (left column), 
+        LessWrong members (center column), or Super forecasters (right column).
+        """
     )
     st.divider()
 
-    # TODO: Move below into a function?
+    st.header("Rounded and extreme predictions")
+    st.markdown(
+        """
+        Although the average predictions are similar across groups,
+        there might be differences in how participants make predictions.
+        In particular, we might expect forecasting experience to affect whether
+        participants make extreme predictions (1% or 99%) or round their predictions
+        by 5.
 
+        For both of these questions, it's possible that forecasting experience might
+        influence predictions in either way.
+        Making an extreme prediction might be a sign of overconfidence due to lack of
+        forecasting experience,
+        or it might be a sign of making a strategic gamble that is necesssary to
+        win in a field of thousands of particiapants.
+
+        Similarly, rounding could result from not considered a prediction carefully
+        enough to make a precise estimate,
+        or it might result from well-calibrated epistemic uncertainty.
+
+        To test this, we can compare the fraction of predictions over all questions
+        that are not equal to some particular set of values of interest.
+        The Chi-square test will tell us if those fractions are different across groups.
+        We can also use a bootstrap method to estimate the sampling distribution of
+        those fractions.
+        For example, because the Super forecaster group in particular has so few
+        participants, our estimate of that fraction will be more uncertain.
+        """
+    )
+
+    # TODO: Move below into a function?
     # Comparison from combining all questions
     # Flatten the prediction df to aggregate all predictions by group
     flattened_prediction_df = process.flatten_prediction_df(blind_mode_df)
@@ -551,15 +618,32 @@ def main():
         """The LessWrong and Forecasting Experience groups are more likely to\
             avoid predicting 1% or 99%, but not the Superforecasters group"""
     )
-    st.markdown("Percent of all predictions that are not equal to 1 or 99.")
     i_ne = 0
     chi_square_results, fractions_dist = ne_results_df[i_ne]
     st.markdown("#### Chi-square test results comparing each group to all")
     st.dataframe(chi_square_results.set_index("class"))
+    st.markdown(
+        """
+        From the Chi-square test, we can see that the LessWrong and Forecasting
+        experience groups are more likely to avoid predicting 1% or 99% than
+        the overall group.
+        """
+    )
     st.markdown("#### Bootstrap distributions")
     fig = create_frac_ne_bootstrap_distributions(fractions_dist, n_bins=None)
     fig.encoding.x.title = "Fraction of predictions that are not equal to 1 or 99"
     st.altair_chart(fig, use_container_width=True)
+    st.markdown(
+        """
+        The bootstrap distributions show that the LessWrong and Forecasting
+        experience groups are more likely to avoid predicting 1% or 99%
+        than the overall group (their distributions are both shifted to the right).
+        We also see that the distribution for the Superforecasters group has a
+        large overlap with the overall group,
+        indicating that we can't reject the null hypothesis that the means of the
+        distributions are the same.
+        """
+    )
     st.divider()
 
     # ne = list(range(5, 100, 5))
@@ -568,11 +652,18 @@ def main():
         by 5s.
         """
     )
-    st.markdown("Percent of all predictions that are not rounded to the nearest 5.")
     i_ne = 1
     chi_square_results, fractions_dist = ne_results_df[i_ne]
     st.markdown("#### Chi-square test results comparing each group to all")
     st.dataframe(chi_square_results.set_index("class"))
+    st.markdown(
+        """
+        From the Chi-square test, we can see that the Super forecaster group
+        is less likely to round their predictions to the nearest 5% than
+        the overall group.
+        The bootstrap distributions below support this conclusion.
+        """
+    )
     st.markdown("#### Bootstrap distributions")
     fig = create_frac_ne_bootstrap_distributions(fractions_dist, n_bins=None)
     fig.encoding.x.title = (
@@ -591,12 +682,27 @@ def main():
     chi_square_results, fractions_dist = ne_results_df[i_ne]
     st.markdown("#### Chi-square test results comparing each group to all")
     st.dataframe(chi_square_results.set_index("class"))
+    st.markdown(
+        """
+        From the Chi-square test, we can see that all groups are more likely to avoid
+        making predictions that are either rounded to the nearest 5% or extreme
+        relative to the overall group.
+        """
+    )
     st.markdown("#### Bootstrap distributions")
     fig = create_frac_ne_bootstrap_distributions(fractions_dist, n_bins=None)
     fig.encoding.x.title = (
         "Fraction of predictions that are neither rounded nor extreme"
     )
     st.altair_chart(fig, use_container_width=True)
+    st.markdown(
+        """
+        The bootstrap distributions show that the LessWrong and Forecasting experience
+        groups are similar, but the Superforecasters group has an even stronger
+        tendency to avoid making predictions that are either rounded to the nearest 5%
+        or extreme.
+        """
+    )
 
     return
 

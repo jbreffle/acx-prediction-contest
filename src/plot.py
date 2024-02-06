@@ -7,6 +7,7 @@ import statistics
 import datetime
 
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import matplotlib.lines as mlines
 import numpy as np
 from scipy.stats import beta
@@ -18,6 +19,79 @@ from src import process
 
 
 # Functions
+def score_vec_hist(score_vec, ax=None, **hist_kwargs):
+    """..."""
+    if ax is None:
+        ax = plt.gca()
+    ax.hist(score_vec, bins=np.round(np.sqrt(len(score_vec))).astype(int))
+    ax.set_title("All Brier scores across a parameter grid")
+    ax.set_xlabel("Brier score")
+    ax.set_ylabel("Count (parameter sets)")
+    return ax
+
+
+def score_vs_beta_2d(beta_range, score_grid, ax=None):
+    if ax is None:
+        ax = plt.gca()
+    colormap_name = "viridis"  # ['viridis', 'plasma', 'inferno', 'magma', 'cividis']
+    im = ax.imshow(
+        score_grid,
+        interpolation="nearest",
+        origin="lower",
+        cmap=mpl.colormaps[colormap_name],
+    )
+    ax.set_title("MSE vs beta_a and beta_b")
+    ax.set_xlabel(r"$\beta_b$")
+    ax.set_ylabel(r"$\beta_a$")
+    # Correct the tick labels to show the actual values, but only show current number of ticks
+    target_ticks = 10
+    tick_interval = max(1, int(max(len(beta_range), len(beta_range)) / target_ticks))
+    # Set tick locations
+    ax.set_xticks(np.arange(0, len(beta_range), tick_interval))
+    ax.set_yticks(np.arange(0, len(beta_range), tick_interval))
+    # Set tick labels
+    ax.set_xticklabels([f"{b:.2f}" for b in beta_range[::tick_interval]], rotation=45)
+    ax.set_yticklabels([f"{a:.2f}" for a in beta_range[::tick_interval]])
+    # Add annotation of minimum value
+    min_idx = np.unravel_index(np.argmin(score_grid), score_grid.shape)
+    min_mse_beta = score_grid[min_idx]
+    min_beta_a = beta_range[min_idx[0]]
+    min_beta_b = beta_range[min_idx[1]]
+    ax.annotate(
+        rf"  Min Brier: {min_mse_beta:.4f} at $\beta_a$={min_beta_a:.4f}, $\beta_b$={min_beta_b:.4f}",
+        xy=(min_idx[1], min_idx[0]),  # x, y coordinates for annotation point
+        xytext=(min_idx[1] * 0.0, min_idx[0] * 1.75),  # Adjust text position
+        color="black",  # Make sure it is black
+        arrowprops=dict(facecolor="black", shrink=0.05),
+    )
+    # Add line at beta_a==beta_b
+    ax.plot([0, len(beta_range) - 1], [0, len(beta_range) - 1], color="grey")
+    # Add colorbar
+    plt.colorbar(im, fraction=0.046, pad=0.04)
+    return ax
+
+
+def score_vs_beta(beta_range, score_vec, ax=None):
+    """..."""
+    if ax is None:
+        ax = plt.gca()
+    ax.plot(beta_range, score_vec)
+    ax.set_title("Brier score vs beta parameters")
+    ax.set_xlabel(r"$\beta_a = \beta_b$")
+    ax.set_ylabel("Brier score")
+    ax.set_xscale("log")
+    # Add annotation to minimum
+    min_mse_beta = np.min(score_vec)
+    min_beta_a = beta_range[np.argmin(score_vec)]
+    ax.annotate(
+        rf"Min Brier: {min_mse_beta:.4f} at $\beta_a = \beta_b$={min_beta_a:.4f}",
+        xy=(min_beta_a, min_mse_beta),
+        xytext=(min_beta_a, min_mse_beta * 1.2),
+        arrowprops=dict(facecolor="black", shrink=0.05),
+    )
+    return ax
+
+
 def feature_volcano_plot(r_and_p_values, significance_threshold=0.05, ax=None):
     """Plot a volcano plot of the r and p values of the features."""
     # Color by significance and slope

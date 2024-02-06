@@ -137,45 +137,53 @@ def main():
     st.divider()
 
     # Show XGBoost model
-    st.subheader("XGBoost model")
-    st.markdown(
-        """
-        We can also use a machine learning model to predict the score based on the
-        features.
-        """
-    )
     # TODO show XGBoost model:
     # model performance, feature importance
+    st.subheader("XGBoost model")
+    nb_xgb_url = "https://github.com/jbreffle/acx-prediction-contest/blob/main/notebooks/5_post_hoc_xgb.ipynb"
+    st.markdown(
+        f"""
+        See 
+        [`./notebooks/5_post_hoc_xgb.ipynb`](<{nb_xgb_url}>)
+        for ongoing analysis and results that will be transfered here,
+        where an XGBoost model is used to predict a participants' Brier score based 
+        on their survey question answers.
+        """
+    )
     st.divider()
 
     # Show aggregation method using model
+    # TODO show aggregation method using model
     st.subheader("Aggregation from model")
     st.markdown(
         """
-        We can also use the model to generate an aggregate forecast.
+        The trained model can then be used to perform prediction aggregation on
+        participants that were not part of the training set.
         """
     )
-    # TODO show aggregation method using model
     st.divider()
 
     # Show NN model and aggregation method
+    # TODO show NN model:
     st.subheader("Neural network model")
+    ng_nn_url = "https://github.com/jbreffle/acx-prediction-contest/blob/main/notebooks/5_post_hoc_nn.ipynb"
     st.markdown(
-        """
-        We can also use a neural network model to predict the score based on the
-        features.
+        f"""
+        See 
+        [`./notebooks/5_post_hoc_nn.ipynb`](<{ng_nn_url}>)
+        for results similar to the XGBoost model, but using a neural network.
         """
     )
-    # TODO show NN model:
     # model performance, feature importance
     st.divider()
 
     # Footer
+    nn_features_url = "https://github.com/jbreffle/acx-prediction-contest/blob/main/notebooks/5_post_hoc_features.ipynb"
     st.markdown(
-        """
-        See ```./notebooks/5_post_hoc_{features, nn, xgb}.ipynb``` of this project's 
-        GitHub repo for additional ongoing analysis and results that will be
-        transfered here.
+        f"""
+        See 
+        [`./notebooks/5_post_hoc_features.ipynb`](<{nn_features_url}>)
+        for addidional analysis and results.
         """
     )
 

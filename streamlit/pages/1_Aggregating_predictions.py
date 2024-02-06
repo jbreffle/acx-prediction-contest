@@ -116,7 +116,7 @@ def main():
         """
         Aggregations of predictions are often more accurate than individual predictions.
         Since we have the predictions of many participants in the Blind Mode, we can
-        use this data to generate aggregate predictions.
+        use this data to generate our own aggregated prediction.
 
         There are several approaches to aggregation.
         The most straightforward is to take the average of the predictions, either the 
@@ -134,13 +134,13 @@ def main():
     st.subheader("Beta transformed arithmetic mean")
     st.markdown(
         r"""[Hanea et al., 2021](https://doi.org/10.1371/journal.pone.0256919) analyzed
-        previously collected forecasting data and analyzed several methods for
+        previously collected forecasting data and evaluated several methods for
         aggregating predictions.
         They found that the beta transformed arithmetic mean (BetaArMean) outperformed
         other aggregation methods on all of their data sets.
-        The BetaArMean takes the average of best estimates and transforms it using the
-        cumulative distribution function of a beta distribution, effectively extremising
-        the aggregate.
+        The BetaArMean involves caculating the mean prediction and then transforming it
+        it using the cumulative distribution function of a beta distribution,
+        effectively extremising the aggregate.
         The beta distribution is a continuous probability distribution with two
         parameters, $\alpha$ and $\beta$.
         They found that $\alpha=\beta=7$ performed the best the aggregating predictions
@@ -158,11 +158,18 @@ def main():
     # Second aggregation method
     st.subheader("Beta transformed experience-weighted arithmetic mean")
     st.markdown(
-        """Although the mean predictions didn't systematically differ to a large extend
+        """
+        Although the mean predictions didn't systematically differ to a large extend
         across groups of participants, there were differences in individual predictions.
         So 
         I shook my magic 8-ball and decided to use the weights of 
-        $[0.05, 0.8, 0.1, 0.05]$ for $[none, SF, FE, LW]$ participants
+        $[0.05, 0.8, 0.1, 0.05]$ for $[All, SF, FE, LW]$ participants.
+        I also thought the extremization was a bit too much,
+        so I toned it down.
+
+        Those tweaks resulted in the following predictions,
+        comparing the final aggreagated predictions (y-axis) to the mean predictions
+        of the Superforecasters (x-axis).
         """
     )
 

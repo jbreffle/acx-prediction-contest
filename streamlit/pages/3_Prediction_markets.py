@@ -208,7 +208,10 @@ def main():
     )
     st.markdown(
         """
-        Manifold Markets has a prediction market for each question in the contest.
+        [Manifold Markets](<https://manifold.markets/>)
+        has a prediction
+        [market](<https://manifold.markets/ACXBot?s=newest&f=all&tab=questions>) 
+        for each question in the contest.
         We can use the Manifold Markets API to get the time series of the forecast
         score for each question.
         We can then evaluate our predications against the market across time.
@@ -216,6 +219,17 @@ def main():
         they should converge to the true outcome.
         At each point in time, we can evaluate our predictions against the market and
         see how we are doing.
+
+        As before, we will use the Brier score to evaluate our predictions.
+        But since the Brier score is only defined for binary outcomes,
+        we will use at each point in time the most likely outcome of the market
+        when calculating the Brier score.
+
+        We will also use the root mean squared error (RMSE) to evaluate our predictions.
+        The Brier score, as we are calculating it,
+        only changes when the market passes the 50$ threshold.
+        The RMSE, on the other hand, smoothly changes with the market's predictions.
+
         """
     )
     st.divider()
@@ -300,12 +314,12 @@ def main():
         f"""
         Our aggregate predictions had a final Brier score of 
         {aggregated_final_brier[0]:.3f}.
-        The top 10 Blind Mode participants had a final Brier scores of 
-        {blind_mode_final_brier[:10].round(3).tolist()}.
+        The top 10 Blind Mode participants had final Brier scores of 
+        ${blind_mode_final_brier[:10].round(3).tolist()}$.
         The aggregate score would have placed {my_rank[0]}
-        which is in the {my_percentile[0]:.2%} percentile.
-        As predicted by our simulation analysis, even if we had perfect
-        calibration it would still be unlikely to win in a field of
+        which is the top {my_percentile[0]:.2%}.
+        As predicted by our simulation analysis, even with perfectly calibrated
+        predictions, we would still be unlikely to win in a field of
         {len(blind_mode_final_brier)} participants.
         """
     )
@@ -314,7 +328,9 @@ def main():
     st.markdown(
         """
         To see detailed time series analysis of the blind mode participants see
-        the notebook ```./notebooks/3_manifold.ipynb``` of this project's GitHub repo.
+        the notebook 
+        [`./notebooks/3_manifold.ipynb`](<https://github.com/jbreffle/acx-prediction-contest/blob/main/notebooks/3_manifold.ipynb>)
+        of this project's GitHub repo.
         """
     )
 
