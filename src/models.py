@@ -22,7 +22,7 @@ def get_default_params():
     """Function to initilize default hyperparameters"""
     params = type("Params", (), {})()
     # Data
-    params.batch_size = 100
+    params.batch_size = 64
     params.train_size = 0.8
     # Model
     params.hidden_layer_sizes = [100, 50, 10]
