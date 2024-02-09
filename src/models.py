@@ -8,6 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import StandardScaler
 
 from src import process
 
@@ -25,22 +26,29 @@ def prepare_data(
     brier_score,
     use_only_complete_data=True,
     features_to_use=None,
+    scale_features=True,
+    fill_na=True,
 ):
-
     if use_only_complete_data:
         good_participants = ~blind_mode_feature_df["Age"].isna()
         blind_mode_feature_df = blind_mode_feature_df[good_participants]
         brier_score = brier_score[good_participants]
         estimates_matrix = estimates_matrix[good_participants]
-    
+
     if features_to_use is not None:
         blind_mode_feature_df = blind_mode_feature_df[features_to_use]
 
     columns_to_use = blind_mode_feature_df.columns.tolist()
     blind_mode_df_xgboost = blind_mode_feature_df[columns_to_use]
     X = blind_mode_df_xgboost
-    # Assign the column names to the X array
     y = brier_score
+    if fill_na:
+        X = X.fillna(X.mean())
+    if scale_features:
+        # TODO need to use fit_transform on train data and transform on test data
+        scaler = StandardScaler()
+        X = scaler.fit_transform(X)
+        X = pd.DataFrame(X, columns=columns_to_use)
     return X, y, estimates_matrix
 
 
@@ -163,9 +171,8 @@ class Net(nn.Module):
         x = F.relu(self.fc1(x))
         x = self.drop_layer(x)
         x = F.relu(self.fc2(x))
-        # x = F.dropout(x, 0.01)
         x = F.relu(self.fc3(x))
-        x = self.fc4(x)
+        x = self.fc4(x).squeeze(dim=1)
         return x
 
 
