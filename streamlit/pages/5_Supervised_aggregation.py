@@ -8,14 +8,52 @@ import numpy as np
 import altair as alt
 import pandas as pd
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+import xgboost as xgb
+
 
 from src import process
 from src import util
 from src import plot
+from src import models
 import Home
 
 
 # Functions for page
+@st.cache_data
+def train_xgboost_model(X_train, y_train, random_seed=42):
+    # Create the xgboost model
+    params = {
+        "alpha": 0.3566354356611679,
+        "gamma": 0.005997467172071246,
+        "lambda": 0.370098278321425,
+        "learning_rate": 0.1982493944040046,
+        "min_child_weight": 3.310164889985418,
+    }
+    xgb_model = xgb.XGBRegressor(
+        objective="reg:squarederror", random_state=random_seed, **params
+    )
+    xgb_model.fit(X_train, y_train)
+    return xgb_model
+
+
+@st.cache_data
+def process_data_for_model(
+    feature_df, estimates_matrix, blind_mode_brier_scores, random_seed=1337
+):
+    X, y, ests = models.prepare_data(
+        feature_df, estimates_matrix, blind_mode_brier_scores
+    )
+    # Split into train and test sets
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, random_state=random_seed, test_size=0.2
+    )
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, random_state=random_seed, test_size=0.2
+    )
+    return X_train, X_test, y_train, y_test
+
+
 @st.cache_data
 def plot_feature_scatter(feature_df, blind_mode_brier_scores, feature_to_plot):
     y_scale = [0, 0.65]
@@ -91,7 +129,6 @@ def main():
         "Select a feature to plot", (feature_names), index=option_default_index
     )
     #
-    # TODO replace pyplot with altair plot
     use_plt_fig = True
     if use_plt_fig:
         fig = plt.figure(figsize=(6, 3))
@@ -120,7 +157,6 @@ def main():
         on the x-axis and the p-value on the y-axis.
         """
     )
-    # TODO replace pyplot with altair plot
     r_and_p_values = util.correlate_features_to_score(
         feature_df, blind_mode_brier_scores
     )
@@ -137,9 +173,27 @@ def main():
     st.divider()
 
     # Show XGBoost model
-    # TODO show XGBoost model:
     # model performance, feature importance
     st.subheader("XGBoost model")
+    # TODO show XGBoost model
+    if False:
+        X_train, X_test, y_train, y_test = process_data_for_model(
+            feature_df, estimates_matrix, blind_mode_brier_scores
+        )
+        xgb_model = train_xgboost_model(X_train, y_train)
+        # Train data
+        y_train_pred = xgb_model.predict(X_train)
+        st.write("Train data")
+        fig = plt.figure(figsize=(6, 3))
+        ax = plot.predicted_actual_scatter(y_train, y_train_pred)
+        st.pyplot(fig, use_container_width=True, transparent=True)
+        # Test data
+        y_pred_test = xgb_model.predict(X_test)
+        st.write("Test data")
+        fig = plt.figure(figsize=(6, 3))
+        ax = plot.predicted_actual_scatter(y_test, y_pred_test)
+        st.pyplot(fig, use_container_width=True, transparent=True)
+    # TODO Finish above
     nb_xgb_url = "https://github.com/jbreffle/acx-prediction-contest/blob/main/notebooks/5_post_hoc_xgb.ipynb"
     st.markdown(
         f"""
