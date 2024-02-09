@@ -9,6 +9,7 @@ import torch.nn.functional as F
 import numpy as np
 import pandas as pd
 
+from src import process
 
 # TODO Switch to using a params dictionary for all hyperparameters
 # TODO: Switch to following the methods of
@@ -18,6 +19,31 @@ import pandas as pd
 
 
 # Functions
+def prepare_data(
+    blind_mode_feature_df,
+    estimates_matrix,
+    brier_score,
+    use_only_complete_data=True,
+    features_to_use=None,
+):
+
+    if use_only_complete_data:
+        good_participants = ~blind_mode_feature_df["Age"].isna()
+        blind_mode_feature_df = blind_mode_feature_df[good_participants]
+        brier_score = brier_score[good_participants]
+        estimates_matrix = estimates_matrix[good_participants]
+    
+    if features_to_use is not None:
+        blind_mode_feature_df = blind_mode_feature_df[features_to_use]
+
+    columns_to_use = blind_mode_feature_df.columns.tolist()
+    blind_mode_df_xgboost = blind_mode_feature_df[columns_to_use]
+    X = blind_mode_df_xgboost
+    # Assign the column names to the X array
+    y = brier_score
+    return X, y, estimates_matrix
+
+
 def get_default_params():
     """Function to initilize default hyperparameters"""
     params = type("Params", (), {})()
@@ -66,7 +92,7 @@ def train_and_evaluate(
         test_loss.append(step_test_loss)
         # print loss and runtime
         if (epoch_idx + 1) % params.log_interval == 0:
-            txt = "Epoch [{:4d}/{:4d}], Train loss: {:07.4f}, Test loss: {:07.4f}, Run Time: {:05.2f}"
+            txt = "Epoch [{:4d}/{:4d}], Train loss: {:07.5f}, Test loss: {:07.5f}, Run Time: {:05.1f}"
             print(
                 txt.format(
                     epoch_idx + 1,
@@ -119,6 +145,9 @@ def test(model, device, test_loader, loss_function, silent=True):
 
 # Models
 class Net(nn.Module):
+    """
+    Simple neural network for non-linear regression.
+    """
 
     def __init__(self, input_size, hidden_layer_sizes, p=0.25):
         super().__init__()
