@@ -399,8 +399,9 @@ def main():
 
     # Title and description of project
     st.title("ACX 2023 Prediction Contest")
+    code_url ="https://github.com/jbreffle/acx-prediction-contest"
     st.markdown(
-        """
+        f"""
         This is a streamlit app to explore the predictions made by participants in the
         [ACX 2023 Prediction Contest\
             ](<https://www.astralcodexten.com/p/2023-prediction-contest>).
@@ -413,12 +414,10 @@ def main():
         and demonstrates my approach to aggregating the data from the Blind Mode
         participants to generate predictions for the Full Mode.
 
-        The app is hosted at 
-        [acx-prediction-contest.streamlit.app\
-            ](<https://acx-prediction-contest.streamlit.app/>), 
-        and the code for the app is hosted on GitHub
-        [github.com/jbreffle/acx-prediction-contest\
-            ](<https://github.com/jbreffle/acx-prediction-contest>).
+        The app can be found at
+        [jbreffle.github.io/acx-app](<https://jbreffle.github.io/acx-app>), 
+        and the code for the app is at
+        [github.com/jbreffle/acx-prediction-contest]({code_url}).
         """
     )
     # Describe app pages

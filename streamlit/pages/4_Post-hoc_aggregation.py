@@ -150,7 +150,18 @@ def main():
     st.divider()
 
     st.subheader("Fixed weights and varying beta parameters")
-    st.markdown("""1D grid:""")
+    st.markdown(
+        r"""
+        This plot shows the Brier score of the aggregated predictions
+        as a function of the beta parameters, with the group weights held constant
+        at their original values and the two beta parameters equal to each other.
+        Our chosen beta parameters of $$\beta _a = \beta_b = \frac{1}{3}$$
+        turns out to have been close to optimal.
+        (Note that our aggregation analysis used the `scipy.stats.beta.ppf` function,
+        which makes the parameter values not directly comparable to those referenced in
+        [Hanea et al., 2021](<https://doi.org/10.1371/journal.pone.0256919>))
+        """
+    )
     n_beta_range = 100
     beta_range, score_vec = calculate_score_vec_1d_beta(
         blind_mode_df, resolution_vector, n_beta_range=50, equal_betas=True
@@ -163,7 +174,13 @@ def main():
         transparent=True,
     )
 
-    st.markdown("""2D grid:""")
+    st.markdown(
+        """
+        Same as above, but now allowing the beta parameters to vary independently.
+        We see that a modest improvement in the Brier score is possible by
+        allowing the beta parameters to be slightly different from each other.
+        """
+    )
     beta_range, score_vec = calculate_score_vec_1d_beta(
         blind_mode_df, resolution_vector, n_beta_range=50, equal_betas=False
     )
@@ -181,7 +198,19 @@ def main():
     st.subheader("Fixed beta parameters and varying weights")
     st.write(
         r"""
-        Varied group weights with fixed $$\beta _a = \beta_b = \frac{1}{3}$$
+        The above analysis allowed the beta parameters to vary,
+        but held the group weights.
+        We can also hold the beta parameters constant and vary the group weights.
+
+        For the following figures we fixed $$\beta _a = \beta_b = \frac{1}{3}$$ and
+        varied the group weights across a 4D grid,
+        allowing the weights to vary independently from 0 to 1 but considering only 
+        parameter sets where the sum of the weights is 1.
+
+        We see that for fixed beta parameters the Brier score does not
+        vary much with the weights.
+        This is consistent with our earlier finding that the mean predictions
+        do not vary much between groups.
         """
     )
     score_vec, parameter_mesh = calculate_score_vec_all_params(
@@ -199,10 +228,13 @@ def main():
     # t-SNE
 
     st.write(
-        """Dimensionality reduction of the 4d grid of weights using t-SNE
+        """
+        Dimensionality reduction of the 4d grid of weights using t-SNE.
+        The Brier score of each parameter set is represented by the color of the point.
+        Notice that the high Brier scores are clustered together,
+        rather than spread out across the space.
         """
     )
-
     show_button = False
     if show_button:
         # TODO update isn't changing the plots
@@ -235,7 +267,6 @@ def main():
     )
     ax.set_xlabel("TSNE 1")
     ax.set_ylabel("TSNE 2")
-    ax.set_title("t-SNE of 4D grid of weights")
     # Add colorbar, with grid false
     plt.colorbar(im, ax=ax, label="Brier score")
 
@@ -254,6 +285,17 @@ def main():
         parameter_mesh, exclude_group="fe", random_state=t_sne_seed
     )
     # Plot these two side by side in different axes of the same fig
+    st.markdown(
+        """
+        1D t-SNE of the parameter mesh when excluding one of the group weights
+        (SF, left, and FE, right).
+        Notice that when plotting the t-SNE against the weights of the Super 
+        forecaster (SF) group weights, the hightest Brier scores are all
+        associated with the highest SF weights. 
+        This is not the case for the Forecasting experience (FE) group, 
+        where the highest Brier scores are associated with the lowest FE weights.
+        """
+    )
     fig = plt.figure(figsize=(6, 3))
     # Left subplot, SF
     ax = fig.add_subplot(121)
@@ -276,7 +318,7 @@ def main():
         c=score_vec,
         cmap="viridis",
     )
-    ax.set_xlabel("SF weights")
+    ax.set_xlabel("FE weights")
     # plt.colorbar(plt.cm.ScalarMappable(cmap="viridis"), ax=ax, label="Brier score")
     st.pyplot(
         fig,
@@ -289,9 +331,9 @@ def main():
     nb_4_url = "https://github.com/jbreffle/acx-prediction-contest/blob/main/notebooks/4_post_hoc_aggregation.ipynb"
     st.markdown(
         f"""
-        See 
+        Click here 
         [`./notebooks/4_post_hoc_aggregation.ipynb`](<{nb_4_url}>)
-        of this project's GitHub repo for additional results,
+        to see additional results,
         including dimensionality reduction with PCA and 
         global parameter optimization.
         By optimizing over the entire parameter space, we can find a minimal Brier Score

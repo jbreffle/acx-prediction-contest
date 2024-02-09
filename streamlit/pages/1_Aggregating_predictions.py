@@ -139,7 +139,7 @@ def main():
         They found that the beta transformed arithmetic mean (BetaArMean) outperformed
         other aggregation methods on all of their data sets.
         The BetaArMean involves caculating the mean prediction and then transforming it
-        it using the cumulative distribution function of a beta distribution,
+        using the cumulative distribution function of a beta distribution,
         effectively extremising the aggregate.
         The beta distribution is a continuous probability distribution with two
         parameters, $\alpha$ and $\beta$.
