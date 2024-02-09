@@ -357,7 +357,7 @@ def main():
     st.divider()
 
     # Comparing my predictions to all Blind Mode participants
-    st.subheader("My predictions vs all Blind Mode participants' predictions")
+    st.subheader("Aggregated predictions vs Blind Mode predictions")
     st.markdown(
         """How do the aggregated predictions fare against all Blind Mode participants' 
         predictions in Monte Carlo simulations of possible futures?

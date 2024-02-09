@@ -579,8 +579,8 @@ def main():
         or it might be a sign of making a strategic gamble that is necesssary to
         win in a field of thousands of particiapants.
 
-        Similarly, rounding could result from not considered a prediction carefully
-        enough to make a precise estimate,
+        Similarly, rounding could result from having not considered a prediction 
+        carefully enough to make a precise estimate,
         or it might result from well-calibrated epistemic uncertainty.
 
         To test this, we can compare the fraction of predictions over all questions

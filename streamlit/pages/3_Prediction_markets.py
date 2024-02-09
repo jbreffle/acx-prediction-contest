@@ -12,6 +12,7 @@ import altair as alt
 import plotly.express as px
 
 from src import process
+from src import util
 import Home
 
 
@@ -97,7 +98,11 @@ def plot_question_market_time_series(
         .mark_line()
         .encode(
             x=alt.X("Time", axis=alt.Axis(format="%Y-%m")),
-            y=alt.Y("Probability", scale=alt.Scale(domain=[0, 1])),
+            y=alt.Y(
+                "Probability",
+                scale=alt.Scale(domain=[0, 1]),
+                title="Market Probability",
+            ),
             tooltip=["Time", "Probability"],
         )
     )
@@ -227,7 +232,7 @@ def main():
 
         We will also use the root mean squared error (RMSE) to evaluate our predictions.
         The Brier score, as we are calculating it,
-        only changes when the market passes the 50$ threshold.
+        only changes when the market passes the 50% threshold.
         The RMSE, on the other hand, smoothly changes with the market's predictions.
 
         """
@@ -239,6 +244,8 @@ def main():
     st.markdown(
         """
         Select a question and a prediction to see the time series of the market.
+        For both the Brier score and the RMSE
+        a lower value indicates a more accurate prediction.
         """
     )
     selected_question_number = st.slider("Select question", 1, 50, 46)
@@ -279,7 +286,7 @@ def main():
     st.markdown(
         """
         How did our aggregated predictions do over time?
-        Our aggregated predictions start off strong (low values is better),
+        Our aggregated predictions start off strong (lower is better),
         meaning they are in accordance with the markets' predictions.
         The scores increase over time, as the market incorporates new
         information that wasn't available to us or the the Blind Mode participants
@@ -316,7 +323,7 @@ def main():
         {aggregated_final_brier[0]:.3f}.
         The top 10 Blind Mode participants had final Brier scores of 
         ${blind_mode_final_brier[:10].round(3).tolist()}$.
-        The aggregate score would have placed {my_rank[0]}
+        The aggregate score would have placed {util.ordinal(my_rank[0])}
         which is the top {my_percentile[0]:.2%}.
         As predicted by our simulation analysis, even with perfectly calibrated
         predictions, we would still be unlikely to win in a field of
