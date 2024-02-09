@@ -187,6 +187,18 @@ def main():
         """
     )
 
+    opt_xgb_url = "https://github.com/jbreffle/acx-prediction-contest/blob/main/notebooks/6_hyperopt_xgb.ipynb"
+    opt_nn_url = "https://github.com/jbreffle/acx-prediction-contest/blob/main/notebooks/6_hyperopt_nn.ipynb"
+    st.markdown(
+        f"""
+        See 
+        [`./notebooks/6_hyperopt_xgb.ipynb`](<{opt_xgb_url}>)
+        and 
+        [`./notebooks/6_hyperopt_nn.ipynb`](<{opt_nn_url}>)
+        for hyperparameter optimization of the models.
+        """
+    )
+
     return
 
 

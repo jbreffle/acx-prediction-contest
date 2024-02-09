@@ -14,11 +14,48 @@ from scipy.stats import beta
 from scipy.stats import linregress
 from scipy.stats import ks_2samp
 from scipy.stats import ttest_ind
+from sklearn.metrics import root_mean_squared_error
 
 from src import process
 
 
 # Functions
+def predicted_actual_scatter(actual, predicted, plot_regression=True, ax=None):
+    """..."""
+    if ax is None:
+        ax = plt.gca()
+    ax.scatter(actual, predicted, s=5)
+    ax.set_title("XGB model predictions vs actual values")
+    ax.set_xlabel("Actual values")
+    ax.set_ylabel("Predictions")
+    ax.plot([0, 1], [0, 1], transform=ax.transAxes, color="grey", linestyle="--")
+    ax.set_title(f"RMSE: {root_mean_squared_error(actual, predicted):.8f}")
+    if plot_regression:
+        # Keep the x and y axis the same as before plotting the regression
+        x_lim = ax.get_xlim()
+        y_lim = ax.get_ylim()
+        # Perform linear regression
+        slope, intercept, r_value, p_value, _ = linregress(actual, predicted)
+        x_to_plot = np.array([0, 1])
+        ax.plot(
+            x_to_plot,
+            intercept + slope * x_to_plot,
+            "r",
+            label="fitted line",
+            alpha=0.5,
+        )
+        ax.text(
+            0.025,
+            0.925,
+            f"R={r_value:.4f}, p={p_value:.4g}",
+            transform=ax.transAxes,
+        )
+        # Set the x and y axis back to the original values, with room for annotation
+        ax.set_xlim(x_lim)
+        ax.set_ylim([y_lim[0], y_lim[1] * 1.025])
+    return ax
+
+
 def score_vec_hist(score_vec, ax=None, **hist_kwargs):
     """..."""
     if ax is None:
@@ -97,11 +134,11 @@ def feature_volcano_plot(r_and_p_values, significance_threshold=0.05, ax=None):
     # Color by significance and slope
     color = np.array(
         [
-            "red"
-            if (x < significance_threshold and y > 0)
-            else "green"
-            if (x < significance_threshold and y < 0)
-            else "grey"
+            (
+                "red"
+                if (x < significance_threshold and y > 0)
+                else "green" if (x < significance_threshold and y < 0) else "grey"
+            )
             for x, y in zip(r_and_p_values["p_value"], r_and_p_values["r_value"])
         ]
     )
