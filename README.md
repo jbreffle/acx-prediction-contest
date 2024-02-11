@@ -32,7 +32,7 @@ Run streamlit locally with
 python -m streamlit run ./streamlit/Home.py
 ```
 
-Streamlit app ```./streamlit/Home.py``` is deployed at <https://acx-prediction-contest.streamlit.app/>
+Streamlit app ```./streamlit/Home.py``` is deployed at <https://jbreffle.github.io/acx-app>
 Streamlit cheatsheet: <https://cheat-sheet.streamlit.app/>
 
 ## src
