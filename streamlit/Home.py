@@ -196,14 +196,8 @@ def create_prediction_histogram(
         raise ValueError(
             f"No columns found containing the string '{question_substring}'"
         )
-    # Make sure data is in the right format (doesn't have a size zero dimension)
-    data.squeeze()
-
-    # Extract the relevant data using DuckDB
-    query = (
-        f'SELECT "{matching_column}" FROM data WHERE "{matching_column}" IS NOT NULL'
-    )
-    filtered_data = duckdb.query(query).df().squeeze()
+    # Extract the relevant data
+    filtered_data = data[matching_column].dropna()
     # Calculate histogram
     histogram_counts, bin_edges = np.histogram(
         filtered_data, bins=n_bins, range=bin_range
