@@ -8,6 +8,7 @@ import numpy as np
 import altair as alt
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 from sklearn.manifold import TSNE
 
 from src import process
@@ -263,7 +264,7 @@ def main():
         tsne_weights_all[:, 1],
         s=5,
         c=score_vec,
-        cmap="viridis",
+        cmap=mpl.colormaps["viridis"],
     )
     ax.set_xlabel("TSNE 1")
     ax.set_ylabel("TSNE 2")
