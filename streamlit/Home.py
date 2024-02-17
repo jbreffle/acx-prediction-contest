@@ -196,6 +196,9 @@ def create_prediction_histogram(
         raise ValueError(
             f"No columns found containing the string '{question_substring}'"
         )
+    # Make sure data is in the right format (doesn't have a size zero dimension)
+    data.squeeze()
+
     # Extract the relevant data using DuckDB
     query = (
         f'SELECT "{matching_column}" FROM data WHERE "{matching_column}" IS NOT NULL'
@@ -399,7 +402,7 @@ def main():
 
     # Title and description of project
     st.title("ACX 2023 Prediction Contest")
-    code_url ="https://github.com/jbreffle/acx-prediction-contest"
+    code_url = "https://github.com/jbreffle/acx-prediction-contest"
     st.markdown(
         f"""
         This is a streamlit app to explore the predictions made by participants in the
