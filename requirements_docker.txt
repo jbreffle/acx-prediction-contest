@@ -1,0 +1,14 @@
+# torch # Install cpu only version in the Dockerfile
+altair
+numpy
+pandas
+pyprojroot
+streamlit
+streamlit-extras
+matplotlib
+scipy
+plotly
+scikit-learn
+xgboost
+flake8
+pytest
