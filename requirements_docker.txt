@@ -10,5 +10,9 @@ scipy
 plotly
 scikit-learn
 xgboost
+pyyaml
+wordninja
+manifoldpy
+pyarrow
 flake8
 pytest
