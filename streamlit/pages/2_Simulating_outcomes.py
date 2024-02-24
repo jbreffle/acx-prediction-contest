@@ -189,7 +189,7 @@ def plot_brier_score_percentile_histogram(my_brier_score_percentile, n_bins=20):
 
 
 # Functions for page
-@st.cache_data  # Don't cache, to allow for button to run new sims
+@st.cache_data
 def run_binary_comparison(
     my_predictions,
     sf_mean_predictions,
@@ -237,6 +237,8 @@ def main():
 
     # Load data
     blind_mode_df, _, _ = Home.load_data()
+    my_predictions, sf_mean_predictions = Home.load_predictions()
+    estimates_matrix = Home.get_estimates_matrix(blind_mode_df)
 
     # Introduction to page
     st.write(
@@ -267,8 +269,7 @@ def main():
     )
     st.divider()
 
-    # Load the predictions (mine and the mean of the superforecasters' predictions)
-    my_predictions, sf_mean_predictions = Home.load_predictions()
+    # Simulate outcomes, using Super forcaster predictions as probabilities
     st.subheader("Aggregated predictions vs the Super forecasters")
     st.markdown(
         "#### What if the mean Super forcaster predictions were correctly calibrated?"
@@ -280,24 +281,17 @@ def main():
         Clicking the big red button will run new simulations.
         """
     )
-    # Button to run new simulations
-    # Set to 42, only if st.button hasn't been pressed yet
     rng_seed_sf = st.session_state.get("rng_seed_sf", 42)
     if st.button("Run new superforcaster-mean simulations", type="primary"):
         rng_seed_sf = np.random.randint(0, 100000)
     st.session_state.rng_seed_sf = rng_seed_sf
-
-    # Simulate outcomes, using Super forcaster predictions as probabilities
-    st.set_option("deprecation.showPyplotGlobalUse", False)
-    # Run Monte Carlo simulation
     my_brier_scores, base_brier_scores, my_score_percentiles = run_binary_comparison(
         my_predictions,
         sf_mean_predictions,
         base_preds_are_probs=True,
         rng_seed=rng_seed_sf,
     )
-    # Histogram of brier scores
-    # Note: lower is better for brier scores
+    # Histogram of brier scores, Note: lower is better for brier scores
     fig = plot_sim_outcome_dist(my_brier_scores, base_brier_scores)
     st.altair_chart(fig, use_container_width=True)
     st.markdown(
@@ -306,7 +300,6 @@ def main():
         and the mean Super forecaster predictions over many simulated futures.
         """
     )
-    # Histogram of brier score  percentiles
     fig = plot_sim_outcome_prct_dist(my_score_percentiles)
     st.altair_chart(fig, use_container_width=True)
     median_brier_score_percentile = np.median(my_score_percentiles)
@@ -317,6 +310,7 @@ def main():
         """
     )
 
+    # Simulate outcomes, using my predictions as probabilities
     st.markdown("#### What if the aggregated predictions had perfect calibration?")
     st.markdown(
         """Here are results from assuming that the aggregated predictions are the true
@@ -327,27 +321,19 @@ def main():
     if st.button("Run new prefect-calibration simulations", type="primary"):
         rng_seed_my_preds = np.random.randint(0, 100000)
     st.session_state.rng_seed_my_preds = rng_seed_my_preds
-    # Simulate outcomes, using Super forcaster predictions as probabilities
-    # Run Monte Carlo simulation
     my_brier_scores, base_brier_scores, my_score_percentiles = run_binary_comparison(
         my_predictions,
         sf_mean_predictions,
         base_preds_are_probs=False,
         rng_seed=rng_seed_my_preds,
     )
-    # Histogram of brier scores
-
-    # Replace
-    # Note: lower is better for brier scores
+    # Histogram of brier scores, note: lower is better for brier scores
     fig = plot_sim_outcome_dist(
         my_brier_scores, base_brier_scores, bin_range=(0.075, 0.275)
     )
     st.altair_chart(fig, use_container_width=True)
-
-    # Histogram of brier score  percentiles
     fig = plot_sim_outcome_prct_dist(my_score_percentiles)
     st.altair_chart(fig, use_container_width=True)
-
     median_brier_score_percentile = np.median(my_score_percentiles)
     st.markdown(
         f"""
@@ -364,13 +350,6 @@ def main():
         predictions in Monte Carlo simulations of possible futures?
         """
     )
-
-    # Get the values from estimates_df and convert to a numpy array
-    estimates_df = blind_mode_df.filter(like="@", axis=1)
-    estimates_matrix = estimates_df.values
-    estimates_matrix = np.nan_to_num(estimates_matrix, nan=estimates_df.median())
-    estimates_matrix = estimates_matrix / 100
-
     rng_seed_blind_mode = st.session_state.get("rng_seed_blind_mode", 44)
     if st.button("Run new Blind Mode evaluation simulations", type="primary"):
         rng_seed_blind_mode = np.random.randint(0, 100000)
@@ -382,14 +361,11 @@ def main():
     ) = run_blind_mode_comparison(
         my_predictions, estimates_matrix, rng_seed=rng_seed_blind_mode
     )
-    # Plot histogram of the last simulation
     fig = plot_blind_mode_histogram(blind_mode_scores, my_brier_score)
     st.altair_chart(fig, use_container_width=True)
-    # Plot histogram of the brier score percentiles
     fig = plot_brier_score_percentile_histogram(my_brier_score_percentile)
     st.altair_chart(fig, use_container_width=True)
     mean_brier_score_percentile = np.mean(my_brier_score_percentile)
-    # Calculate fraction of winning simulations
     min_percentile_to_win = 100 / len(blind_mode_scores)
     frac_wins = np.mean(np.array(my_brier_score_percentile) < min_percentile_to_win)
     st.markdown(

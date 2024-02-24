@@ -18,7 +18,22 @@ import Home
 
 # Functions for this page
 @st.cache_data
-def plot_my_score_time_series(my_pred_df, market_hist_df, transient=0, height=250):
+def plot_my_score_time_series(my_pred_df, market_hist_df):
+    mse_chart, brier_chart = create_my_score_time_series(my_pred_df, market_hist_df)
+    st.altair_chart(mse_chart, use_container_width=True)
+    st.altair_chart(brier_chart, use_container_width=True)
+    return None
+
+
+@st.cache_data
+def plot_bier_violin(blind_mode_final_brier, blind_mode_df):
+    fig = create_brier_violin(blind_mode_final_brier, blind_mode_df)
+    st.plotly_chart(fig)
+    return None
+
+
+@st.cache_data
+def create_my_score_time_series(my_pred_df, market_hist_df, transient=0, height=250):
     """Calculates and returns Altair charts for the MSE and Brier score time series for all questions."""
     my_mse = process.get_score_df(my_pred_df, market_hist_df, score_type="mse")
     my_brier = process.get_score_df(my_pred_df, market_hist_df, score_type="brier")
@@ -60,8 +75,27 @@ def plot_my_score_time_series(my_pred_df, market_hist_df, transient=0, height=25
     return mse_chart, brier_chart
 
 
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def plot_question_market_time_series(
+    selected_question_number,
+    selected_question_prediction,
+    market_hist_df,
+    plot_market_subset=True,
+):
+    fig_1, fig_2, fig_3 = create_question_market_time_series(
+        selected_question_number,
+        selected_question_prediction / 100,
+        market_hist_df,
+        plot_subset=plot_market_subset,
+    )
+    st.altair_chart(fig_1, use_container_width=True)
+    st.altair_chart(fig_2, use_container_width=True)
+    st.altair_chart(fig_3, use_container_width=True)
+    return None
+
+
+@st.cache_data
+def create_question_market_time_series(
     q_to_plot,
     q_to_plot_prediction,
     market_hist_df,
@@ -143,7 +177,7 @@ def plot_question_market_time_series(
 
 
 @st.cache_data
-def plot_brier_violin(blind_mode_final_brier, blind_mode_df):
+def create_brier_violin(blind_mode_final_brier, blind_mode_df):
     briers_all = blind_mode_final_brier
     briers_fe = blind_mode_final_brier[blind_mode_df["ForecastingExperience"] == "Yes"]
     briers_sf = blind_mode_final_brier[blind_mode_df["Superforecaster"] == "Yes"]
@@ -198,10 +232,7 @@ def main():
     blind_mode_df, markets_df, resolution_vector = Home.load_data()
     my_predictions, _ = Home.load_predictions()
     market_hist_df = get_market_df()
-    estimates_df = blind_mode_df.filter(like="@", axis=1)
-    estimates_matrix = estimates_df.values
-    estimates_matrix = np.nan_to_num(estimates_matrix, nan=estimates_df.median())
-    estimates_matrix = estimates_matrix / 100
+    estimates_matrix = Home.get_estimates_matrix(blind_mode_df)
     blind_mode_final_brier = np.mean(
         np.square(estimates_matrix - resolution_vector["resolution"].values), axis=1
     )
@@ -256,8 +287,6 @@ def main():
         99,
         initial_prediction_value,
     )
-
-    # Write question text and outcome
     full_question = Home.get_question_text(markets_df, selected_question_number)
     question_outcome_string = Home.get_question_outcome_string(
         resolution_vector, selected_question_number
@@ -271,17 +300,15 @@ def main():
         unsafe_allow_html=True,
     )
     plot_market_subset = not st.checkbox("Plot all time points (slow)", value=False)
-    fig_1, fig_2, fig_3 = plot_question_market_time_series(
+    plot_question_market_time_series(
         selected_question_number,
-        selected_question_prediction / 100,
+        selected_question_prediction,
         market_hist_df,
-        plot_subset=plot_market_subset,
+        plot_market_subset=plot_market_subset,
     )
-    st.altair_chart(fig_1, use_container_width=True)
-    st.altair_chart(fig_2, use_container_width=True)
-    st.altair_chart(fig_3, use_container_width=True)
     st.divider()
-
+    
+    # Evaluate time series of the aggregated predictions
     st.subheader("Aggregated predictions")
     st.markdown(
         """
@@ -295,11 +322,10 @@ def main():
     )
     my_pred_df = pd.DataFrame(columns=["Q" + str(i) for i in range(1, 51)])
     my_pred_df.loc[0] = my_predictions
-    fig_1, fig_2 = plot_my_score_time_series(my_pred_df, market_hist_df)
-    st.altair_chart(fig_1, use_container_width=True)
-    st.altair_chart(fig_2, use_container_width=True)
+    plot_my_score_time_series(my_pred_df, market_hist_df)
     st.divider()
 
+    # Evalute final Brier scores of all Blind Mode participants
     st.subheader("Final scores")
     st.markdown(
         """
@@ -307,10 +333,7 @@ def main():
         at the end of the contest?
         """
     )
-    # Create a violin plot in altair of the final scores
-    fig = plot_brier_violin(blind_mode_final_brier, blind_mode_df)
-    st.plotly_chart(fig)
-    # Write top scores and my percentile and rank
+    plot_bier_violin(blind_mode_final_brier, blind_mode_df)
     aggregated_final_brier = np.mean(
         np.square(my_pred_df.values - resolution_vector["resolution"].values), axis=1
     )
@@ -332,6 +355,7 @@ def main():
     )
     st.divider()
 
+    # Link to notebook
     st.markdown(
         """
         To see detailed time series analysis of the blind mode participants see

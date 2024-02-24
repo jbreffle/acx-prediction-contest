@@ -96,7 +96,7 @@ def main():
     # Load data
     blind_mode_df, markets_df, resolution_df = Home.load_data()
     feature_df, target_df = get_ml_dfs(blind_mode_df)
-    estimates_matrix = process.get_estimates_matrix(blind_mode_df)
+    estimates_matrix = Home.get_estimates_matrix(blind_mode_df)
     resolution_vector = target_df["resolution"].values
     blind_mode_brier_scores = np.mean(
         np.square(estimates_matrix - resolution_vector), axis=1

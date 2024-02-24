@@ -23,6 +23,46 @@ def create_equality_line():
 
 
 @st.cache_data
+def create_my_preds_df(my_preds, resolution_vector, markets_df):
+    all_question_text = [
+        Home.get_question_text(markets_df, x)
+        for x in resolution_vector["question_number"]
+    ]
+    all_question_outcomes = [
+        "Yes" if x else "No" for x in resolution_vector["resolution"]
+    ]
+    my_preds_df = pd.DataFrame(
+        my_preds.values.T, columns=resolution_vector["question_number"]
+    )
+    my_preds_df = my_preds_df.T
+    my_preds_df = my_preds_df.rename(columns={0: "Prediction"})
+    my_preds_df["Outcome"] = (np.array(all_question_outcomes)).T
+    my_preds_df["Question text"] = [
+        x.split(". ")[1] for x in np.array(all_question_text)
+    ]
+    my_preds_df.index.name = "Question"
+    return my_preds_df
+
+
+@st.cache_data
+def plot_weighted_beta_scatter(blind_mode_df):
+    fig, my_preds = create_weighted_beta_scatter_plot(blind_mode_df)
+    scatter_column_2 = st.columns([1, 2, 1])
+    with scatter_column_2[1]:
+        st.altair_chart(fig, use_container_width=True)
+    return my_preds
+
+
+@st.cache_data
+def plot_beta_scatter(blind_mode_df):
+    fig = create_beta_scatter_plot(blind_mode_df)
+    scatter_column_1 = st.columns([1, 2, 1])
+    with scatter_column_1[1]:
+        st.altair_chart(fig, use_container_width=True)
+    return None
+
+
+@st.cache_data
 def create_beta_scatter_plot(blind_mode_df, beta_a=1 / 7, beta_b=1 / 7):
     ests = blind_mode_df.filter(like="@", axis=1)
     original_predictions = ests.mean() / 100
@@ -149,10 +189,7 @@ def main():
     )
 
     # Beta transformation with alpha=beta=7
-    fig = create_beta_scatter_plot(blind_mode_df)
-    scatter_column_1 = st.columns([1, 2, 1])
-    with scatter_column_1[1]:
-        st.altair_chart(fig, use_container_width=True)
+    plot_beta_scatter(blind_mode_df)
     st.divider()
 
     # Second aggregation method
@@ -172,11 +209,7 @@ def main():
         of the Superforecasters (x-axis).
         """
     )
-
-    fig, my_preds = create_weighted_beta_scatter_plot(blind_mode_df)
-    scatter_column_2 = st.columns([1, 2, 1])
-    with scatter_column_2[1]:
-        st.altair_chart(fig, use_container_width=True)
+    my_preds = plot_weighted_beta_scatter(blind_mode_df)
 
     # Show final predictions
     st.markdown(
@@ -185,23 +218,7 @@ def main():
         which leaves us with the following predictions:
         """
     )
-    all_question_text = [
-        Home.get_question_text(markets_df, x)
-        for x in resolution_vector["question_number"]
-    ]
-    all_question_outcomes = [
-        "Yes" if x else "No" for x in resolution_vector["resolution"]
-    ]
-    my_preds_df = pd.DataFrame(
-        my_preds.values.T, columns=resolution_vector["question_number"]
-    )
-    my_preds_df = my_preds_df.T
-    my_preds_df = my_preds_df.rename(columns={0: "Prediction"})
-    my_preds_df["Outcome"] = (np.array(all_question_outcomes)).T
-    my_preds_df["Question text"] = [
-        x.split(". ")[1] for x in np.array(all_question_text)
-    ]
-    my_preds_df.index.name = "Question"
+    my_preds_df = create_my_preds_df(my_preds, resolution_vector, markets_df)
     st.dataframe(my_preds_df, height=500)
 
     return

@@ -171,6 +171,27 @@ def display_groupwise_scatter_row(ests, blind_mode_df, statistic):
     return
 
 
+@st.cache_data(show_spinner=False)
+def get_all_ne_fractions(blind_mode_df):
+    flattened_prediction_df = process.flatten_prediction_df(blind_mode_df)
+    rounded_values = list(range(5, 100, 5))
+    extreme_values = [1, 99]
+    ne_options = [
+        extreme_values,
+        rounded_values,
+        extreme_values + rounded_values,
+    ]
+    # Perform calculations comparing fractions to ne
+    # run_ne_calculations runs chi-square test and returns bootstrap distributions
+    ne_results_df = {}
+    for i, ne in enumerate(ne_options):
+        chi_square_results, fractions_dist = run_ne_calculations(
+            flattened_prediction_df, ne
+        )
+        ne_results_df[i] = (chi_square_results, fractions_dist)
+    return ne_results_df
+
+
 @st.cache_data
 def run_ne_calculations(flattened_prediction_df, ne):
     """Run the calculations for the not equal to ne analysis."""
@@ -406,8 +427,10 @@ def create_scatter_plot(median_pred, x_col, y_col, fit_line=True):
     if fit_line:
         # Calculate linear regression
         # Note: p_value is for the deviation from the equality line
-        _, angle, _ = linear_regression_stats(median_pred[x_col], median_pred[y_col])
-        _, _, p_value = linear_regression_stats(
+        _, regression_slope, _ = linear_regression_stats(
+            median_pred[x_col], median_pred[y_col]
+        )
+        _, _, regresssion_pvalue = linear_regression_stats(
             median_pred[x_col], median_pred[y_col] - median_pred[x_col]
         )
         # Create regression line
@@ -417,8 +440,6 @@ def create_scatter_plot(median_pred, x_col, y_col, fit_line=True):
         # Regression stats annotation to add to chart
         ticker_x = 4
         ticker_y = 94
-        regresssion_pvalue = p_value
-        regression_slope = angle
         ticker = (
             f"p = {regresssion_pvalue:.3f}",
             f"∠ = {regression_slope:.1f}°",
@@ -593,25 +614,8 @@ def main():
         """
     )
 
-    # TODO: Move below into a function?
-    # Comparison from combining all questions
-    # Flatten the prediction df to aggregate all predictions by group
-    flattened_prediction_df = process.flatten_prediction_df(blind_mode_df)
-    rounded_values = list(range(5, 100, 5))
-    extreme_values = [1, 99]
-    ne_options = [
-        extreme_values,
-        rounded_values,
-        extreme_values + rounded_values,
-    ]
-    # Perform calculations comparing fractions to ne
-    # run_ne_calculations runs chi-square test and returns bootstrap distributions
-    ne_results_df = {}
-    for i, ne in enumerate(ne_options):
-        chi_square_results, fractions_dist = run_ne_calculations(
-            flattened_prediction_df, ne
-        )
-        ne_results_df[i] = (chi_square_results, fractions_dist)
+    with st.spinner("Calculating..."):
+        ne_results_df = get_all_ne_fractions(blind_mode_df)
 
     # ne = [1, 99]
     st.subheader(

@@ -34,6 +34,11 @@ GH_ICON_PATH = os.path.join(
 
 # Functions used across pages
 @st.cache_data
+def get_estimates_matrix(df, nan_method="median"):
+    return process.get_estimates_matrix(df, nan_method=nan_method)
+
+
+@st.cache_data
 def load_predictions():
     """Load previously saved prediction files"""
     # Mean superforecaster predictions
@@ -114,7 +119,6 @@ def get_question_text(markets_df, selected_question_number):
 
 @st.cache_data
 def set_plt_style():
-    # white text and axes, Grid on, thinner axes lines, smaller font
     params = {
         "ytick.color": "w",
         "xtick.color": "w",
@@ -529,11 +533,9 @@ def main():
         They are:
         """
     )
-    # Get the question number, after @  before .
     questions_fraction_answered_numbers = questions_fraction_answered.index.str.extract(
         r"@(\d+)\."
     )
-
     full_question_1 = get_question_text(
         markets_df, questions_fraction_answered_numbers.iloc[0].values
     )
@@ -554,7 +556,6 @@ def main():
         obscure and niche-topic questions in the contest.
         """
     )
-
     st.text("")
     # Response rate by participant
     questions_fraction_answered = 1 - (
@@ -578,7 +579,6 @@ def main():
         - {(questions_fraction_answered==0).sum()} participants answered zero questions.
         """
     )
-
     return
 
 

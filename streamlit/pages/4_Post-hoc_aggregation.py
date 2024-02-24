@@ -15,7 +15,7 @@ from src import plot
 import Home
 
 
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def run_tsne(parameter_mesh, exclude_group=None, n_components=None, random_state=0):
     # Create a list of the parameter_mesh columns to exclude
     parameter_columns = ["all", "sf", "fe", "lw", "beta_a", "beta_b"]
@@ -121,7 +121,8 @@ def get_aggregation_score_arguments(blind_mode_df):
 def get_ml_dfs(df):
     feature_df = process.get_feature_df(df)
     target_df = process.get_target_df()
-    return feature_df, target_df
+    resolution_vector = target_df["resolution"].values
+    return feature_df, target_df, resolution_vector
 
 
 def main():
@@ -129,14 +130,8 @@ def main():
     Home.configure_page(page_title="Post-hoc aggregation")
 
     # Load data
-    blind_mode_df, markets_df, resolution_df = Home.load_data()
-    estimates_df = blind_mode_df.filter(like="@", axis=1)
-    feature_df, target_df = get_ml_dfs(blind_mode_df)
-    estimates_matrix = process.get_estimates_matrix(blind_mode_df)
-    resolution_vector = target_df["resolution"].values
-    blind_mode_brier_scores = np.mean(
-        np.square(estimates_matrix - resolution_vector), axis=1
-    )
+    blind_mode_df, _, _ = Home.load_data()
+    _, _, resolution_vector = get_ml_dfs(blind_mode_df)
 
     # Introduction to page
     st.write("""# How close to optimal were our aggregation parameters""")
@@ -148,6 +143,7 @@ def main():
     )
     st.divider()
 
+    # 1-D varied beta parameters
     st.subheader("Fixed weights and varying beta parameters")
     st.markdown(
         r"""
@@ -161,10 +157,11 @@ def main():
         [Hanea et al., 2021](<https://doi.org/10.1371/journal.pone.0256919>))
         """
     )
-    n_beta_range = 100
+    n_beta_range = 50
     beta_range, score_vec = calculate_score_vec_1d_beta(
-        blind_mode_df, resolution_vector, n_beta_range=50, equal_betas=True
+        blind_mode_df, resolution_vector, n_beta_range=n_beta_range, equal_betas=True
     )
+    # TODO: move to cached function
     fig = plt.figure(figsize=(6, 2))
     _ = plot.score_vs_beta(beta_range, score_vec).set_title("")
     st.pyplot(
@@ -173,6 +170,7 @@ def main():
         transparent=True,
     )
 
+    # 2-D varied beta parameters
     st.markdown(
         """
         Same as above, but now allowing the beta parameters to vary independently.
@@ -181,10 +179,10 @@ def main():
         """
     )
     beta_range, score_vec = calculate_score_vec_1d_beta(
-        blind_mode_df, resolution_vector, n_beta_range=50, equal_betas=False
+        blind_mode_df, resolution_vector, n_beta_range=n_beta_range, equal_betas=False
     )
+    # TODO: move to cached function
     score_grid = score_vec.reshape((len(beta_range), len(beta_range)))
-    # Plot
     fig = plt.figure(figsize=(6, 4))
     _ = plot.score_vs_beta_2d(beta_range, score_grid).set_title("")
     st.pyplot(
@@ -194,6 +192,7 @@ def main():
     )
     st.divider()
 
+    # Fixed beta and varied weights
     st.subheader("Fixed beta parameters and varying weights")
     st.write(
         r"""
@@ -215,6 +214,7 @@ def main():
     score_vec, parameter_mesh = calculate_score_vec_all_params(
         blind_mode_df, resolution_vector, n_points=20, fixed_betas=True
     )
+    # TODO: move to cached function
     fig = plt.figure(figsize=(6, 2))
     ax = plot.score_vec_hist(score_vec)
     ax.set_title("All Brier scores across the 4D grid of weights")
@@ -225,7 +225,6 @@ def main():
     )
 
     # t-SNE
-
     st.write(
         """
         Dimensionality reduction of the 4d grid of weights using t-SNE.
@@ -234,27 +233,18 @@ def main():
         rather than spread out across the space.
         """
     )
-    show_button = False
-    if show_button:
-        # TODO update isn't changing the plots
-        def update1():
-            st.session_state.t_sne_seed = np.random.randint(0, 100)
-
-        if "t_sne_seed" not in st.session_state:
-            st.session_state.t_sne_seed = 0
-        st.button(
-            f"Re-roll t-SNE seed (current: {st.session_state.t_sne_seed})",
-            on_click=update1,
-            type="primary",
+    t_sne_seed = 0
+    with st.spinner("Running t-SNE..."):
+        tsne_weights_all = run_tsne(parameter_mesh, random_state=t_sne_seed)
+        tsne_weights_minus_sf = run_tsne(
+            parameter_mesh, exclude_group="sf", random_state=t_sne_seed
         )
-        t_sne_seed = st.session_state.t_sne_seed
-        st.write(f"t-SNE seed: {t_sne_seed}")
-        st.write(f"t-SNE seed: {st.session_state.t_sne_seed}")
-    else:
-        t_sne_seed = 0
+        tsne_weights_minus_fe = run_tsne(
+            parameter_mesh, exclude_group="fe", random_state=t_sne_seed
+        )
 
     # 2D TSNE of parameter_mesh, colored by f
-    tsne_weights_all = run_tsne(parameter_mesh, random_state=t_sne_seed)
+    # TODO: move to cached function
     fig = plt.figure(figsize=(6, 5))
     ax = fig.add_subplot(111)
     im = ax.scatter(
@@ -266,9 +256,7 @@ def main():
     )
     ax.set_xlabel("TSNE 1")
     ax.set_ylabel("TSNE 2")
-    # Add colorbar, with grid false
     plt.colorbar(im, ax=ax, label="Brier score")
-
     st.pyplot(
         fig,
         use_container_width=True,
@@ -277,13 +265,6 @@ def main():
 
     # 1D TSNE without a dimension of parameter_mesh, then plot
     # that dimension against the 1-d TSNE
-    tsne_weights_minus_sf = run_tsne(
-        parameter_mesh, exclude_group="sf", random_state=t_sne_seed
-    )
-    tsne_weights_minus_fe = run_tsne(
-        parameter_mesh, exclude_group="fe", random_state=t_sne_seed
-    )
-    # Plot these two side by side in different axes of the same fig
     st.markdown(
         """
         1D t-SNE of the parameter mesh when excluding one of the group weights
@@ -295,8 +276,8 @@ def main():
         where the highest Brier scores are associated with the lowest FE weights.
         """
     )
+    # TODO: move to cached function
     fig = plt.figure(figsize=(6, 3))
-    # Left subplot, SF
     ax = fig.add_subplot(121)
     ax.scatter(
         parameter_mesh[:, 1],
@@ -307,8 +288,6 @@ def main():
     )
     ax.set_xlabel("SF weights")
     ax.set_ylabel("TSNE 1")
-    # plt.colorbar(plt.cm.ScalarMappable(cmap="viridis"), ax=ax, label="Brier score")
-    # Right subplot, FE
     ax = fig.add_subplot(122)
     ax.scatter(
         parameter_mesh[:, 2],
@@ -318,7 +297,6 @@ def main():
         cmap="viridis",
     )
     ax.set_xlabel("FE weights")
-    # plt.colorbar(plt.cm.ScalarMappable(cmap="viridis"), ax=ax, label="Brier score")
     st.pyplot(
         fig,
         use_container_width=True,
@@ -326,7 +304,7 @@ def main():
     )
     st.divider()
 
-    # Footer
+    # Links to notebooks
     nb_4_url = "https://github.com/jbreffle/acx-prediction-contest/blob/main/notebooks/4_post_hoc_aggregation.ipynb"
     st.markdown(
         f"""
