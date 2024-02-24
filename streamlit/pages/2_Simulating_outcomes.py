@@ -282,10 +282,11 @@ def main():
     )
     # Button to run new simulations
     # Set to 42, only if st.button hasn't been pressed yet
-    if "rng_seed_sf" not in st.session_state:
-        st.session_state.rng_seed_sf = 42
+    rng_seed_sf = st.session_state.get("rng_seed_sf", 42)
     if st.button("Run new superforcaster-mean simulations", type="primary"):
-        st.session_state.rng_seed_sf = np.random.randint(0, 100000)
+        rng_seed_sf = np.random.randint(0, 100000)
+    st.session_state.rng_seed_sf = rng_seed_sf
+
     # Simulate outcomes, using Super forcaster predictions as probabilities
     st.set_option("deprecation.showPyplotGlobalUse", False)
     # Run Monte Carlo simulation
@@ -293,7 +294,7 @@ def main():
         my_predictions,
         sf_mean_predictions,
         base_preds_are_probs=True,
-        rng_seed=st.session_state.rng_seed_sf,
+        rng_seed=rng_seed_sf,
     )
     # Histogram of brier scores
     # Note: lower is better for brier scores
@@ -322,17 +323,17 @@ def main():
         underlying probabilities:
         """
     )
-    if "rng_seed_my_preds" not in st.session_state:
-        st.session_state.rng_seed_my_preds = 43
+    rng_seed_my_preds = st.session_state.get("rng_seed_my_preds", 43)
     if st.button("Run new prefect-calibration simulations", type="primary"):
-        st.session_state.rng_seed_my_preds = np.random.randint(0, 100000)
+        rng_seed_my_preds = np.random.randint(0, 100000)
+    st.session_state.rng_seed_my_preds = rng_seed_my_preds
     # Simulate outcomes, using Super forcaster predictions as probabilities
     # Run Monte Carlo simulation
     my_brier_scores, base_brier_scores, my_score_percentiles = run_binary_comparison(
         my_predictions,
         sf_mean_predictions,
         base_preds_are_probs=False,
-        rng_seed=st.session_state.rng_seed_my_preds,
+        rng_seed=rng_seed_my_preds,
     )
     # Histogram of brier scores
 
@@ -369,16 +370,17 @@ def main():
     estimates_matrix = estimates_df.values
     estimates_matrix = np.nan_to_num(estimates_matrix, nan=estimates_df.median())
     estimates_matrix = estimates_matrix / 100
-    if "rng_seed_blind_mode" not in st.session_state:
-        st.session_state.rng_seed_blind_mode = 44
+
+    rng_seed_blind_mode = st.session_state.get("rng_seed_blind_mode", 44)
     if st.button("Run new Blind Mode evaluation simulations", type="primary"):
-        st.session_state.rng_seed_blind_mode = np.random.randint(0, 100000)
+        rng_seed_blind_mode = np.random.randint(0, 100000)
+    st.session_state.rng_seed_blind_mode = rng_seed_blind_mode
     (
         my_brier_score,
         blind_mode_scores,
         my_brier_score_percentile,
     ) = run_blind_mode_comparison(
-        my_predictions, estimates_matrix, rng_seed=st.session_state.rng_seed_blind_mode
+        my_predictions, estimates_matrix, rng_seed=rng_seed_blind_mode
     )
     # Plot histogram of the last simulation
     fig = plot_blind_mode_histogram(blind_mode_scores, my_brier_score)
