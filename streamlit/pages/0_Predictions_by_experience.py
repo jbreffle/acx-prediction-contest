@@ -192,7 +192,7 @@ def get_all_ne_fractions(blind_mode_df):
     return ne_results_df
 
 
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def run_ne_calculations(flattened_prediction_df, ne):
     """Run the calculations for the not equal to ne analysis."""
     fractions = util.calculate_not_equal_prediction_fractions(
