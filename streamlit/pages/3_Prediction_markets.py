@@ -236,6 +236,7 @@ def main():
     blind_mode_final_brier = np.mean(
         np.square(estimates_matrix - resolution_vector["resolution"].values), axis=1
     )
+    blind_mode_final_brier_sorted = np.sort(blind_mode_final_brier)
 
     # Introduction to page
     st.write(
@@ -307,7 +308,7 @@ def main():
         plot_market_subset=plot_market_subset,
     )
     st.divider()
-    
+
     # Evaluate time series of the aggregated predictions
     st.subheader("Aggregated predictions")
     st.markdown(
@@ -337,22 +338,40 @@ def main():
     aggregated_final_brier = np.mean(
         np.square(my_pred_df.values - resolution_vector["resolution"].values), axis=1
     )
-    blind_mode_final_brier.sort()
-    my_rank = np.searchsorted(blind_mode_final_brier, aggregated_final_brier)
-    my_percentile = my_rank / len(blind_mode_final_brier)
+    my_rank = np.searchsorted(blind_mode_final_brier_sorted, aggregated_final_brier)
+    my_percentile = my_rank / len(blind_mode_final_brier_sorted)
     st.markdown(
         f"""
         Our aggregate predictions had a final Brier score of 
         {aggregated_final_brier[0]:.3f}.
         The top 10 Blind Mode participants had final Brier scores of 
-        ${blind_mode_final_brier[:10].round(3).tolist()}$.
+        ${blind_mode_final_brier_sorted[:10].round(3).tolist()}$.
         The aggregate score would have placed {util.ordinal(my_rank[0])}
         which is the top {my_percentile[0]:.2%}.
         As predicted by our simulation analysis, even with perfectly calibrated
         predictions, we would still be unlikely to win in a field of
-        {len(blind_mode_final_brier)} participants.
+        {len(blind_mode_final_brier_sorted)} participants.
         """
     )
+
+    # How well the Median superforecaster did:
+    briers_sf = blind_mode_final_brier[blind_mode_df["Superforecaster"] == "Yes"]
+    briers_sf_median = np.median(briers_sf)
+    briers_sf_median_rank = np.searchsorted(
+        blind_mode_final_brier_sorted, briers_sf_median
+    )
+    briers_sf_median_percentile = briers_sf_median_rank / len(
+        blind_mode_final_brier_sorted
+    )
+    st.markdown(
+        f"""
+        The median score of the Superforecasters was {briers_sf_median:.3f}.
+        This would have placed them at {util.ordinal(briers_sf_median_rank)}
+        which is the {1-briers_sf_median_percentile:.2%}-tile ranking 
+        (defining the 100th percentile as the lowest Brier score).
+        """
+    )
+
     st.divider()
 
     # Link to notebook
