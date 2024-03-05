@@ -267,6 +267,13 @@ def main():
         only changes when the market passes the 50% threshold.
         The RMSE, on the other hand, smoothly changes with the market's predictions.
 
+        Note:
+        The contest has now 
+        [concluded](<https://www.astralcodexten.com/p/who-predicted-2023>)
+        and the
+        [Metaculus scoring function](<https://www.metaculus.com/help/scores-faq/>)
+        was used, rather than the Brier score.
+        
         """
     )
     st.divider()
@@ -371,7 +378,33 @@ def main():
         (defining the 100th percentile as the lowest Brier score).
         """
     )
+    st.divider()
 
+    # Show final scores of all Blind Mode participants
+    st.subheader("Final scores of all Blind Mode participants")
+    st.markdown(
+        """
+        Note:
+        I used the Brier score to measure prediction accuracy,
+        but the final [results](<https://www.astralcodexten.com/p/who-predicted-2023>)
+        of the contest were based on the
+        [Metaculus scoring function](<https://www.metaculus.com/help/scores-faq/>).
+        """
+    )
+    blind_mode_results_df = pd.DataFrame(
+        {
+            "Rank": np.arange(1, len(blind_mode_final_brier_sorted) + 1),
+            "Percentile": (1
+            - np.arange(1, len(blind_mode_final_brier_sorted) + 1)
+            / len(blind_mode_final_brier_sorted))
+            * 100,
+            "Brier score": blind_mode_final_brier_sorted,
+        }
+    )
+    for col in blind_mode_df.columns:
+        if col.startswith("@"):
+            blind_mode_results_df[col] = blind_mode_df[col]
+    st.dataframe(blind_mode_results_df, hide_index=True)
     st.divider()
 
     # Link to notebook
