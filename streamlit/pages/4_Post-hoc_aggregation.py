@@ -223,6 +223,10 @@ def main():
         """
         Now that the contest is over, we can evaluate how our aggregated predictions
         would have fared with alternate aggregation parameters.
+
+        See the "Simulating outcomes" page for a discussion of the Brier score,
+        which we use to evaluate the aggregated predictions.
+        Keep in mind that a lower Brier score is better.
         """
     )
     st.divider()

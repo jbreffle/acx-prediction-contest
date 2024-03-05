@@ -118,6 +118,10 @@ def main():
         participants performed the best.
         We can then ask if there are characteristics of the best performing participants
         that we can identify and then use to generate an improved aggregate forecast.
+
+        See the "Simulating outcomes" page for a discussion of the Brier score,
+        which we use to evaluate the aggregated predictions.
+        Keep in mind that a lower Brier score is better.
         """
     )
     st.divider()
@@ -142,6 +146,11 @@ def main():
         We can also look at the correlation between each feature and the score.
         This can be done using a volcano plot, which shows the correlation coefficient
         on the x-axis and the p-value on the y-axis.
+
+        Recall that a lower Brier score is better,
+        so features with a positive correlation are associated with worse scores (red)
+        and features with a negative correlation are associated with better scores
+        (green).
         """
     )
     plot_feature_correlations(feature_df, blind_mode_brier_scores)

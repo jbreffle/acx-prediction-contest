@@ -445,6 +445,13 @@ def main():
         accurate forecasting?
         """
     )
+    st.markdown(
+        """
+        Note:
+        The contest has now concluded and the results were announced
+        [here](<https://www.astralcodexten.com/p/who-predicted-2023>).
+        """
+    )
     st.divider()
 
     # Load and display data

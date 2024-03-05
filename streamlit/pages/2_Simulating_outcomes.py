@@ -253,8 +253,9 @@ def main():
         We can then evaluate the distribution of our forecasting scores that might occur 
         due to the randomness of the future.
 
-        For this contest,
-        the accuracy of a set of predictions is measured by the Brier score.
+        The scoring method that will be used for the contest was not given,
+        so we will use the Brier score,
+        which is a common scoring method for binary predictions.
         The Brier score is defined as the mean squared difference between the predicted
         probability and the actual outcome,
         which means that a lower Brier score is better.
