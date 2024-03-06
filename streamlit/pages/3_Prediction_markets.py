@@ -391,22 +391,26 @@ def main():
         [Metaculus scoring function](<https://www.metaculus.com/help/scores-faq/>).
         """
     )
-    if 0:
-        brier_score_rank = np.argsort(blind_mode_final_brier) + 1
-        brier_score_percentile = brier_score_rank / len(blind_mode_final_brier) * 100
-        blind_mode_results_df = pd.DataFrame(
-            {
-                "Rank": brier_score_rank,
-                "Percentile": brier_score_percentile,
-                "Brier score": blind_mode_final_brier,
-            }
-        )
-        for col in blind_mode_df.columns:
-            if col.startswith("@"):
-                blind_mode_results_df[col] = blind_mode_df[col]
-        # Sort all columns by rank
-        blind_mode_results_df = blind_mode_results_df.sort_values(by="Rank")
-        st.dataframe(blind_mode_results_df, hide_index=True)
+
+    # Get the ranks of the blind_mode_final_brier scores, lower is better
+    brier_score_rank = (
+        np.searchsorted(blind_mode_final_brier_sorted, blind_mode_final_brier) + 1
+    )
+    # Percentile, higher is better
+    brier_score_percentile = 100 - (brier_score_rank / len(blind_mode_final_brier_sorted) * 100)
+    blind_mode_results_df = pd.DataFrame(
+        {
+            "Rank": brier_score_rank,
+            "Percentile": brier_score_percentile,
+            "Brier score": blind_mode_final_brier,
+        }
+    )
+    for col in blind_mode_df.columns:
+        if col.startswith("@"):
+            blind_mode_results_df[col] = blind_mode_df[col]
+    # Sort all columns by rank
+    blind_mode_results_df = blind_mode_results_df.sort_values(by="Brier score")
+    st.dataframe(blind_mode_results_df, hide_index=True)
     st.divider()
 
     # Link to notebook
