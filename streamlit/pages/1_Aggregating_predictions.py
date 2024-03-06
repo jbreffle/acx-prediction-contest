@@ -54,8 +54,10 @@ def plot_weighted_beta_scatter(blind_mode_df):
 
 
 @st.cache_data
-def plot_beta_scatter(blind_mode_df):
-    fig = create_beta_scatter_plot(blind_mode_df)
+def plot_beta_scatter(blind_mode_df, beta_a=1 / 7, beta_b=1 / 7, use_cdf=False):
+    fig = create_beta_scatter_plot(
+        blind_mode_df, beta_a=beta_a, beta_b=beta_b, use_cdf=use_cdf
+    )
     scatter_column_1 = st.columns([1, 2, 1])
     with scatter_column_1[1]:
         st.altair_chart(fig, use_container_width=True)
@@ -63,10 +65,13 @@ def plot_beta_scatter(blind_mode_df):
 
 
 @st.cache_data
-def create_beta_scatter_plot(blind_mode_df, beta_a=1 / 7, beta_b=1 / 7):
+def create_beta_scatter_plot(blind_mode_df, beta_a=1 / 7, beta_b=1 / 7, use_cdf=False):
     ests = blind_mode_df.filter(like="@", axis=1)
     original_predictions = ests.mean() / 100
-    transformed_predictions = beta.ppf(original_predictions, beta_a, beta_b)
+    if use_cdf:
+        transformed_predictions = beta.cdf(original_predictions, beta_a, beta_b)
+    else:
+        transformed_predictions = beta.ppf(original_predictions, beta_a, beta_b)
     aggregate_predictions_df = pd.DataFrame(
         {
             "Original predictions": original_predictions,
@@ -189,7 +194,7 @@ def main():
     )
 
     # Beta transformation with alpha=beta=7
-    plot_beta_scatter(blind_mode_df)
+    plot_beta_scatter(blind_mode_df, beta_a=7, beta_b=7, use_cdf=True)
     st.divider()
 
     # Second aggregation method
