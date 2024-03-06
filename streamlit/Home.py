@@ -357,7 +357,7 @@ def display_page_cards():
         )
     with card_column_2[1]:
         card(
-            title="Manifold evaluation",
+            title="Prediction markets",
             text="""How well do our aggregate predictions compare to prediction\
                 markets across the year?""",
             image="http://placekitten.com/301/251",
