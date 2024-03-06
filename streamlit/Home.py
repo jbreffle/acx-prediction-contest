@@ -361,7 +361,7 @@ def display_page_cards():
             text="""How well do our aggregate predictions compare to prediction\
                 markets across the year?""",
             image="http://placekitten.com/301/251",
-            on_click=lambda: switch_page("Manifold_evaluation"),
+            on_click=lambda: switch_page("Prediction_markets"),
             styles={
                 "card": {
                     "margin-top": "-25px",
