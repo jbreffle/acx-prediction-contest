@@ -43,6 +43,8 @@ def get_estimates_matrix(df, nan_method="median"):
             )
         case "mean":
             estimates_matrix = np.nan_to_num(estimates_matrix, nan=estimates_df.mean())
+        case "nan":
+            estimates_matrix = np.nan_to_num(estimates_matrix, nan=np.nan)
         case _:
             raise ValueError(f"nan_method {nan_method} not recognized")
     estimates_matrix = estimates_matrix / 100
@@ -208,103 +210,103 @@ def get_feature_df(df):
     )
     # "Monogomous" from "Relationshipstyle"
     feature_df["Monogomous"] = df["Relationshipstyle"].apply(
-        lambda x: 1
-        if ("monogamous" in str(x).lower())
-        else np.nan
-        if pd.isnull(x)
-        else 0
+        lambda x: (
+            1 if ("monogamous" in str(x).lower()) else np.nan if pd.isnull(x) else 0
+        )
     )
     # "USA" from "Country"
     feature_df["USA"] = df["Country"].apply(
-        lambda x: 1
-        if ("united states" in str(x).lower())
-        else np.nan
-        if pd.isnull(x)
-        else 0
+        lambda x: (
+            1 if ("united states" in str(x).lower()) else np.nan if pd.isnull(x) else 0
+        )
     )
     # "Heterosexual" from "SexualOrientation"
     feature_df["Heterosexual"] = df["SexualOrientation"].apply(
-        lambda x: 1
-        if ("heterosexual" in str(x).lower())
-        else np.nan
-        if pd.isnull(x)
-        else 0
+        lambda x: (
+            1 if ("heterosexual" in str(x).lower()) else np.nan if pd.isnull(x) else 0
+        )
     )
     # Consequentialist from MoralViews
     feature_df["Consequentialist"] = df["MoralViews"].apply(
-        lambda x: 1
-        if ("consequentialism" in str(x).lower())
-        else np.nan
-        if pd.isnull(x)
-        else 0
+        lambda x: (
+            1
+            if ("consequentialism" in str(x).lower())
+            else np.nan if pd.isnull(x) else 0
+        )
     )
     # Vegetarian, 0 if "No", 1 if "No, but", 2 if "Yes", nan if nan
     feature_df["Vegetarian"] = df["Vegetarian"].apply(
-        lambda x: 0
-        if ("no" in str(x).lower())
-        else 1
-        if ("no, but" in str(x).lower())
-        else 2
-        if ("yes" in str(x).lower())
-        else np.nan
+        lambda x: (
+            0
+            if ("no" in str(x).lower())
+            else (
+                1
+                if ("no, but" in str(x).lower())
+                else 2 if ("yes" in str(x).lower()) else np.nan
+            )
+        )
     )
     # Handedness, 0 if right, 1 if left nan otherwise
     feature_df["LeftHanded"] = df["Handedness"].apply(
-        lambda x: 0
-        if ("right" in str(x).lower())
-        else 1
-        if ("left" in str(x).lower())
-        else np.nan
+        lambda x: (
+            0
+            if ("right" in str(x).lower())
+            else 1 if ("left" in str(x).lower()) else np.nan
+        )
     )
     # "Burp" from "Doyouburp"
     # "Never or almost never", "Less than once a week, but sometimes",
     # "L"ess than once a day, but more than once a week", "Yes, basically every day"
     feature_df["Burp"] = df["Doyouburp"].apply(
-        lambda x: 0
-        if ("never" in str(x).lower())
-        else 1
-        if ("less than once a week" in str(x).lower())
-        else 2
-        if ("less than once a day" in str(x).lower())
-        else 3
-        if ("yes" in str(x).lower())
-        else np.nan
+        lambda x: (
+            0
+            if ("never" in str(x).lower())
+            else (
+                1
+                if ("less than once a week" in str(x).lower())
+                else (
+                    2
+                    if ("less than once a day" in str(x).lower())
+                    else 3 if ("yes" in str(x).lower()) else np.nan
+                )
+            )
+        )
     )
     # "OwnCrypto" from "Doyouholdcryptocurrency" 0 if no, 1 if yes, nan otherwise
     feature_df["OwnCrypto"] = df["Doyouholdcryptocurrency"].apply(
-        lambda x: 0
-        if ("no" in str(x).lower())
-        else 1
-        if ("yes" in str(x).lower())
-        else np.nan
+        lambda x: (
+            0
+            if ("no" in str(x).lower())
+            else 1 if ("yes" in str(x).lower()) else np.nan
+        )
     )
     # left/right from "PoliticalAffiliation" (1 if left, 0 if right, nan if neither)
     feature_df["PoliticalAffiliation"] = df["PoliticalAffiliation"].apply(
-        lambda x: -1
-        if (
-            "liberal" in str(x).lower()
-            or "marxist" in str(x).lower()
-            or "social democratic" in str(x).lower()
+        lambda x: (
+            -1
+            if (
+                "liberal" in str(x).lower()
+                or "marxist" in str(x).lower()
+                or "social democratic" in str(x).lower()
+            )
+            else (
+                1
+                if (
+                    "alt-right" in str(x).lower()
+                    or "conservative" in str(x).lower()
+                    or ("neoreactionary" in str(x).lower())
+                )
+                else np.nan if pd.isnull(x) else 0
+            )
         )
-        else 1
-        if (
-            "alt-right" in str(x).lower()
-            or "conservative" in str(x).lower()
-            or ("neoreactionary" in str(x).lower())
-        )
-        else np.nan
-        if pd.isnull(x)
-        else 0
     )
     # Moved left/right from "PoliticalMovement"
     feature_df["PoliticalMovement"] = df["PoliticalChange"].apply(
-        lambda x: -1
-        if ("left" in str(x).lower())
-        else 1
-        if ("right" in str(x).lower())
-        else np.nan
-        if pd.isnull(x)
-        else 0
+        lambda x: (
+            -1
+            if ("left" in str(x).lower())
+            else 1 if ("right" in str(x).lower()) else np.nan if pd.isnull(x) else 0
+        )
     )
     # Misc clean up
     feature_df.rename(columns={"WhatisyourBMI": "BMI"}, inplace=True)
