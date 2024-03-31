@@ -492,6 +492,11 @@ def main():
         LessWrong, and
         {size_of_groups["Super forecaster"][0]} participants reported being super
         forecasters.
+
+        This page examines whether there are any differences in the predictions
+        made by these groups.
+        For analyses evaluating the final performance of these groups, see the
+        "Prediction markets" page and the "Supervised aggregation" page.
         """
     )
 
