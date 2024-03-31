@@ -549,14 +549,31 @@ def main():
     full_question_2 = get_question_text(
         markets_df, questions_fraction_answered_numbers.iloc[1].values
     )
-    st.markdown(
-        f"""
-        - Question {full_question_1} Which had a response rate of
-        {questions_fraction_answered[0]:.02%}
-        - Question {full_question_2} Which had a response rate of
-        {questions_fraction_answered[1]:.02%}
-        """
-    )
+    # BUG: full_question_1 is intermittently identical to full_question_2 on
+    # Streamlit Community Cloud (and is fixed by refreshing the page).
+    # Switching to hard-coding the correct answer until the bug is fixed.
+    if 0:
+        st.markdown(
+            f"""
+            - Question {full_question_1} Which had a response rate of
+            {questions_fraction_answered[0]:.02%}
+            - Question {full_question_2} Which had a response rate of
+            {questions_fraction_answered[1]:.02%}
+            """
+        )
+    else:
+        q1_text = "36. Will Tether de-peg in 2023?"
+        q1_percent = 75.99
+        q2_text = "41. Will an image model win Scott Alexander's bet on compositionality, to Edwin Chen's satisfaction, in 2023?"
+        q2_percent = 76.93
+        st.markdown(
+            f"""
+            - Question {q1_text} Which had a response rate of
+            {q1_percent}%
+            - Question {q2_text} Which had a response rate of
+            {q2_percent}%
+            """
+        )
     st.markdown(
         """
         This result makes sense, as both of these questions are two of the most
