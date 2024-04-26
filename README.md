@@ -12,7 +12,9 @@ to produce an answer for the Full Mode.
 - Contest conclusion:
 <https://www.astralcodexten.com/p/who-predicted-2023>.
 - Published final scores:
-<https://www.astralcodexten.com/p/open-thread-322>.
+<https://www.astralcodexten.com/p/open-thread-323>
+(The final sores were initially published here
+<https://www.astralcodexten.com/p/open-thread-322> but those turned out to be incorrect).
 
 ## Notebooks
 
