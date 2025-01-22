@@ -45,7 +45,7 @@ python -m streamlit run ./streamlit/Home.py
 ```
 
 The Streamlit app ```./streamlit/Home.py``` is deployed at
-<https://jbreffle.github.io/acx-app>.
+<https://acx-prediction-contest.streamlit.app/>.
 
 ## src
 
