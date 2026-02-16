@@ -11,8 +11,8 @@ import numpy as np
 import yaml
 import pandas as pd
 import pyprojroot.here
+import requests
 import wordninja
-import manifoldpy
 import pyarrow.parquet as pq
 
 
@@ -25,6 +25,10 @@ DEFAULT_DATA_PATH_XLSX = pyprojroot.here(config["DATA_PATH_XLSX"])
 DEFAULT_DATA_PATH_CSV = pyprojroot.here(config["DATA_PATH_CSV"])
 PROCESSED_DATA_FOLDER = pyprojroot.here(config["PROCESSED_DATA_FOLDER"])
 RESULTS_FOLDER = pyprojroot.here(config["RESULTS_FOLDER"])
+MANIFOLD_V0_URL = "https://manifold.markets/api/v0"
+MANIFOLD_BETS_URL = f"{MANIFOLD_V0_URL}/bets"
+MANIFOLD_SLUG_URL = f"{MANIFOLD_V0_URL}/slug/{{slug}}"
+MANIFOLD_TIMEOUT_SECONDS = 20
 
 # Create default folders if they don't exists
 Path(PROCESSED_DATA_FOLDER).mkdir(parents=True, exist_ok=True)
@@ -525,6 +529,65 @@ def get_manifold_slugs(data_file=DEFAULT_DATA_PATH):
     return list_of_slugs
 
 
+def _get_manifold_market_by_slug(slug):
+    response = requests.get(
+        MANIFOLD_SLUG_URL.format(slug=slug), timeout=MANIFOLD_TIMEOUT_SECONDS
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+def _get_manifold_bets(market_id, before=None):
+    params = {"contractId": market_id, "limit": 1000}
+    if before is not None:
+        params["before"] = before
+    response = requests.get(
+        MANIFOLD_BETS_URL, params=params, timeout=MANIFOLD_TIMEOUT_SECONDS
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+def _get_all_manifold_bets(market_id):
+    all_bets = []
+    before = None
+    while True:
+        batch = _get_manifold_bets(market_id, before=before)
+        if len(batch) == 0:
+            break
+        all_bets.extend(batch)
+        if len(batch) < 1000:
+            break
+        before = batch[-1]["id"]
+    return all_bets
+
+
+def _get_binary_market_probability_history(market_json):
+    bets = _get_all_manifold_bets(market_json["id"])
+    if len(bets) == 0:
+        fallback_probability = market_json.get("probability")
+        if fallback_probability is None:
+            fallback_probability = market_json.get("resolutionProbability")
+        if fallback_probability is None:
+            fallback_probability = 0.5
+        return np.array([market_json["createdTime"]]), np.array([fallback_probability])
+    sorted_bets = sorted(bets, key=lambda x: x["createdTime"])
+    start_probability = sorted_bets[0].get("probBefore")
+    if start_probability is None:
+        start_probability = market_json.get("probability")
+    if start_probability is None:
+        start_probability = sorted_bets[0].get("probAfter", 0.5)
+    times = [market_json["createdTime"]]
+    probabilities = [start_probability]
+    for bet in sorted_bets:
+        prob_after = bet.get("probAfter")
+        if prob_after is None:
+            continue
+        times.append(bet["createdTime"])
+        probabilities.append(prob_after)
+    return np.array(times), np.array(probabilities)
+
+
 def get_current_probs(current_prob_file=None, silent=False):
     """Get the current probabilities from manifold and save to csv.
 
@@ -542,19 +605,19 @@ def get_current_probs(current_prob_file=None, silent=False):
         list_of_slugs = get_manifold_slugs()
         current_manifold_df = pd.DataFrame(list_of_slugs, columns=["slug"])
         current_manifold_df["market"] = current_manifold_df["slug"].apply(
-            manifoldpy.api.get_slug
+            _get_manifold_market_by_slug
         )
         current_manifold_df["question_number"] = current_manifold_df["slug"].apply(
             lambda x: x.split("-")[0]
         )
         current_manifold_df["question"] = current_manifold_df["market"].apply(
-            lambda x: x.question
+            lambda x: x["question"]
         )
         current_manifold_df["probability"] = current_manifold_df["market"].apply(
-            lambda x: x.probability
+            lambda x: x.get("probability")
         )
         current_manifold_df["resolution"] = current_manifold_df["market"].apply(
-            lambda x: x.resolution
+            lambda x: x.get("resolution")
         )
         # Save to csv
         current_manifold_df.drop(columns=["slug", "market"], inplace=True)
@@ -598,9 +661,8 @@ def get_all_markets(market_hist_file=None, silent=False):
         market_hist_df = pd.DataFrame()
         for ith_slug in range(len(list_of_slugs)):
             slug = list_of_slugs[ith_slug]
-            slug_market = manifoldpy.api.get_slug(slug)
-            market = manifoldpy.api.get_full_market(slug_market.id)
-            times, probabilities = market.probability_history()
+            slug_market = _get_manifold_market_by_slug(slug)
+            times, probabilities = _get_binary_market_probability_history(slug_market)
             market_df = pd.DataFrame(
                 {"time": times, "Q" + str(ith_slug + 1): probabilities}
             )

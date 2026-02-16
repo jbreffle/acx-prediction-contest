@@ -10,15 +10,15 @@ readme = "README.md"
 requires-python = ">=3.11,<3.12"
 dependencies = [
     "altair==5.2.0",
-    "manifoldpy==1.1.2",
-    "matplotlib==3.5.2",
-    "numpy==1.23.1",
+    "matplotlib==3.6.3",
+    "numpy==1.23.5",
     "openpyxl==3.1.2",
     "pandas==1.5.1",
     "plotly==5.18.0",
     "pyarrow==15.0.0",
     "pyprojroot==0.3.0",
     "pyyaml==6.0.1",
+    "requests==2.28.1",
     "scikit-learn==1.4.0",
     "scipy==1.9.3",
     "streamlit==1.31.0",
