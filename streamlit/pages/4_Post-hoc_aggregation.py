@@ -60,7 +60,8 @@ def plot_2d_tsne(tsne_weights, score_vec):
     )
     ax.set_xlabel("TSNE 1")
     ax.set_ylabel("TSNE 2")
-    plt.colorbar(im, ax=ax, label="Brier score")
+    with mpl.rc_context({"axes.grid": False}):
+        plt.colorbar(im, ax=ax, label="Brier score")
     st.pyplot(
         fig,
         use_container_width=True,

@@ -3,6 +3,20 @@
 Analysis of the Blind Mode predictions data from the Astral Codex 2023 prediction contest
 to produce an answer for the Full Mode.
 
+## Environment Setup (uv)
+
+This project now uses `uv` for dependency and environment management.
+
+```bash
+uv sync --group dev --group notebooks
+```
+
+- Run tests:
+
+```bash
+uv run pytest -vv
+```
+
 ## ACX links
 
 - Announcement of the contest:
@@ -41,7 +55,7 @@ to produce an answer for the Full Mode.
 Run the Streamlit app locally with
 
 ```bash
-python -m streamlit run ./streamlit/Home.py
+uv run streamlit run streamlit/Home.py
 ```
 
 The Streamlit app ```./streamlit/Home.py``` is deployed at

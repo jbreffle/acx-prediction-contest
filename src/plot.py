@@ -103,8 +103,10 @@ def score_vs_beta_2d(beta_range, score_grid, ax=None):
     )
     # Add line at beta_a==beta_b
     ax.plot([0, len(beta_range) - 1], [0, len(beta_range) - 1], color="grey")
-    # Add colorbar
-    plt.colorbar(im, fraction=0.046, pad=0.04)
+    # Matplotlib creates colorbar axes with grid state from rcParams; disable it to
+    # avoid deprecated auto-removal behavior inside pcolormesh.
+    with mpl.rc_context({"axes.grid": False}):
+        plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
     return ax
 
 

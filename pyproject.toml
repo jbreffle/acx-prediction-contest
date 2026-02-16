@@ -1,0 +1,69 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "acx-prediction-contest"
+version = "0.1.0"
+description = "ACX prediction contest analysis and Streamlit app"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "altair==5.2.0",
+    "manifoldpy==1.1.2",
+    "matplotlib==3.5.2",
+    "numpy==1.23.1",
+    "openpyxl==3.1.2",
+    "pandas==1.5.1",
+    "plotly==5.18.0",
+    "pyarrow==15.0.0",
+    "pyprojroot==0.3.0",
+    "pyyaml==6.0.1",
+    "scikit-learn==1.4.0",
+    "scipy==1.9.3",
+    "streamlit==1.31.0",
+    "streamlit-extras==0.3.6",
+    "torch==2.1.2",
+    "wordninja==2.0.0",
+    "xgboost==2.0.3",
+]
+
+[dependency-groups]
+dev = [
+    "flake8==7.0.0",
+    "nbclient==0.10.2",
+    "nbformat==5.10.4",
+    "pytest==8.0.0",
+]
+notebooks = [
+    "hyperopt==0.2.7",
+    "ipykernel==6.29.0",
+    "ipython==8.20.0",
+    "matplotlib-inline==0.1.6",
+    "seaborn==0.13.2",
+    "setuptools>=68,<71",
+    "shap==0.44.1",
+    "tqdm==4.66.1",
+]
+
+[tool.uv]
+package = true
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+
+[tool.setuptools]
+packages = ["src"]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore:.*deprecated - use .*:pyparsing.exceptions.PyparsingDeprecationWarning:matplotlib\\..*",
+    "ignore:.*unquoteResults.*:pyparsing.exceptions.PyparsingDeprecationWarning:matplotlib\\..*",
+    "ignore:.*deprecated - use .*:pyparsing.warnings.PyparsingDeprecationWarning:matplotlib\\..*",
+    "ignore:.*unquoteResults.*:pyparsing.warnings.PyparsingDeprecationWarning:matplotlib\\..*",
+]

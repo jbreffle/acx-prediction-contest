@@ -1,31 +1,42 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
-name: Python application
+name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 permissions:
   contents: read
 
 jobs:
-  build:
+  lint_and_tests:
     runs-on: ubuntu-latest
-    container: 
-      image: jbreffle/acx-prediction-contest:latest
-    
     steps:
-    - uses: actions/checkout@v4
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test with pytest
-      run: |
-        pytest -vv
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@v4
+      - name: Sync dependencies
+        run: uv sync --frozen --group dev
+      - name: Lint with flake8
+        run: |
+          uv run flake8 src streamlit scripts --jobs=1 --count --select=E9,F63,F7,F82 --show-source --statistics
+          uv run flake8 src streamlit scripts --jobs=1 --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      - name: Test with pytest
+        run: uv run pytest -vv
+
+  notebook_smoke:
+    runs-on: ubuntu-latest
+    needs: lint_and_tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@v4
+      - name: Sync dependencies
+        run: uv sync --frozen --group dev --group notebooks
+      - name: Smoke test notebooks
+        run: uv run pytest -vv scripts/notebook_smoke.py
