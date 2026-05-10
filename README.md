@@ -61,6 +61,23 @@ uv run streamlit run streamlit/Home.py
 The Streamlit app ```./streamlit/Home.py``` is deployed at
 <https://acx-prediction-contest.streamlit.app/>.
 
+## Static app
+
+This repo also includes a generated static version of the app for GitHub Pages.
+Build it with:
+
+```bash
+uv run python scripts/build_static.py
+```
+
+The command writes a deployable multi-file site to `dist/`.
+The static app keeps heavy calculations in the Python build step and renders
+navigation, controls, charts, and tables in the browser.
+The `Static Pages` GitHub Actions workflow builds `dist/` and deploys it with
+GitHub Pages; for this repository, the project Pages URL is expected to be
+<https://jbreffle.github.io/acx-prediction-contest/> once Pages is configured
+to use GitHub Actions.
+
 ## src
 
 - Functions and constants used across the project
